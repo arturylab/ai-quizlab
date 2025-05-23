@@ -1,0 +1,202 @@
+[
+  {
+    "id": "MS-CHEM-0001",
+    "question": "What is the basic unit of matter?",
+    "options": ["Atom", "Molecule", "Cell", "Electron"],
+    "answer": "Atom",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0002",
+    "question": "What is H2O commonly known as?",
+    "options": ["Hydrogen peroxide", "Salt", "Water", "Carbon dioxide"],
+    "answer": "Water",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0003",
+    "question": "Which of the following is a gas at room temperature?",
+    "options": ["Oxygen", "Iron", "Mercury", "Water"],
+    "answer": "Oxygen",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0004",
+    "question": "What is the chemical symbol for gold?",
+    "options": ["Ag", "Au", "Gd", "Go"],
+    "answer": "Au",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0005",
+    "question": "What is the pH of a neutral substance like pure water?",
+    "options": ["0", "7", "10", "14"],
+    "answer": "7",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0006",
+    "question": "Which part of the atom has a negative charge?",
+    "options": ["Proton", "Electron", "Neutron", "Nucleus"],
+    "answer": "Electron",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0007",
+    "question": "What do we call a substance made of only one type of atom?",
+    "options": ["Compound", "Mixture", "Solution", "Element"],
+    "answer": "Element",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0008",
+    "question": "Which state of matter has no fixed shape but has a fixed volume?",
+    "options": ["Solid", "Liquid", "Gas", "Plasma"],
+    "answer": "Liquid",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0009",
+    "question": "Which of these is a physical change?",
+    "options": ["Burning wood", "Melting ice", "Rusting iron", "Cooking an egg"],
+    "answer": "Melting ice",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0010",
+    "question": "What does the periodic table organize?",
+    "options": ["Planets", "Animals", "Elements", "Rocks"],
+    "answer": "Elements",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0011",
+    "question": "Which of the following is a mixture?",
+    "options": ["Salt", "Water", "Air", "Carbon dioxide"],
+    "answer": "Air",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0012",
+    "question": "Which gas do humans breathe in to survive?",
+    "options": ["Carbon dioxide", "Nitrogen", "Oxygen", "Helium"],
+    "answer": "Oxygen",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0013",
+    "question": "What is the process of a solid changing directly into a gas?",
+    "options": ["Condensation", "Freezing", "Sublimation", "Evaporation"],
+    "answer": "Sublimation",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0014",
+    "question": "What is table salt made of?",
+    "options": ["Hydrogen and oxygen", "Sodium and chlorine", "Carbon and oxygen", "Iron and sulfur"],
+    "answer": "Sodium and chlorine",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0015",
+    "question": "What is the smallest part of an element that still has its properties?",
+    "options": ["Electron", "Atom", "Molecule", "Compound"],
+    "answer": "Atom",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0016",
+    "question": "What do you call a combination of two or more substances that can be separated?",
+    "options": ["Element", "Mixture", "Compound", "Solution"],
+    "answer": "Mixture",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0017",
+    "question": "Which element is needed for fire to burn?",
+    "options": ["Carbon", "Hydrogen", "Oxygen", "Nitrogen"],
+    "answer": "Oxygen",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0018",
+    "question": "Which of these is a chemical property?",
+    "options": ["Color", "Melting point", "Reactivity", "Density"],
+    "answer": "Reactivity",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0019",
+    "question": "How many atoms are in one water molecule?",
+    "options": ["1", "2", "3", "4"],
+    "answer": "3",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0020",
+    "question": "What kind of change is burning wood?",
+    "options": ["Physical change", "Chemical change", "Phase change", "No change"],
+    "answer": "Chemical change",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0021",
+    "question": "Which of the following is an example of a compound?",
+    "options": ["Iron", "Air", "Water", "Helium"],
+    "answer": "Water",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0022",
+    "question": "What is the center of an atom called?",
+    "options": ["Electron", "Shell", "Nucleus", "Molecule"],
+    "answer": "Nucleus",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0023",
+    "question": "What is the chemical symbol for sodium?",
+    "options": ["Na", "S", "So", "Sn"],
+    "answer": "Na",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0024",
+    "question": "Which tool is used to measure mass?",
+    "options": ["Thermometer", "Graduated cylinder", "Balance", "Meter stick"],
+    "answer": "Balance",
+    "category": "Chemistry",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-CHEM-0025",
+    "question": "What kind of bond involves sharing electrons?",
+    "options": ["Ionic bond", "Hydrogen bond", "Covalent bond", "Metallic bond"],
+    "answer": "Covalent bond",
+    "category": "Chemistry",
+    "level": "Middle School"
+  }
+]

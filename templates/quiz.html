@@ -6,12 +6,49 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Quiz in Progress 🚀</h2>
-        <p style="text-align:center;">
-            The quiz will appear here soon.<br>
-            Good luck!
-        </p>
+    <div class="teacher-container">
+        <h2>Quiz for {{ student_name }} (Teacher: {{ teacher_name }}) 🚀</h2>
+        {% if quiz_questions %}
+            <form id="studentQuizForm">
+                <ol>
+                {% for q in quiz_questions %}
+                    {% set idx = loop.index0 %}
+                    <li style="margin-bottom: 24px;">
+                        <div>
+                            <strong>Question:</strong> {{ q.get('question', 'No question text') }}<br>
+                            <strong>Category:</strong> {{ q.get('category', 'N/A') }} | <strong>Level:</strong> {{ q.get('level', 'N/A') }}
+                        </div>
+                        {% if q.get('options') %}
+                            <ul style="list-style-type: lower-alpha;">
+                                {% for opt in q.options %}
+                                    <li>
+                                        <label>
+                                            <input type="radio" name="q{{ idx }}" value="{{ opt }}">
+                                            {{ opt }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                </ol>
+                <div style="text-align:center;">
+                    <button type="submit" style="width:auto; display:inline-block;">Submit Quiz</button>
+                </div>
+            </form>
+            {% else %}
+            <p style="text-align:center; color:red;">
+                No quiz available for your group. Please contact your teacher.
+            </p>
+            {% endif %}
+        <div id="quizResult" style="margin-top:24px; text-align:center;"></div>
+        <div id="logoutAfterQuiz" style="display:none; margin-top:24px; text-align:center;">
+            <form action="/logout" method="post" style="display:inline-block;">
+                <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
+            </form>
+        </div>
     </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

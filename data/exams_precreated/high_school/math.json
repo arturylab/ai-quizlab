@@ -1,0 +1,202 @@
+[
+  {
+    "id": "HS-MATH-0001",
+    "question": "What is the solution to the equation 2x + 3 = 11?",
+    "options": ["4", "5", "6", "7"],
+    "answer": "4",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0002",
+    "question": "What is the slope of the line passing through points (2, 3) and (4, 7)?",
+    "options": ["1", "2", "3", "4"],
+    "answer": "2",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0003",
+    "question": "What is the quadratic formula?",
+    "options": ["x = (-b ± √(b² - 4ac)) / 2a", "x = (-b ± √(b² + 4ac)) / 2a", "x = (b ± √(b² - 4ac)) / 2a", "x = (b ± √(b² + 4ac)) / 2a"],
+    "answer": "x = (-b ± √(b² - 4ac)) / 2a",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0004",
+    "question": "If f(x) = 3x² - 2x + 1, what is f(2)?",
+    "options": ["7", "9", "11", "13"],
+    "answer": "9",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0005",
+    "question": "What is the value of sin(90°)?",
+    "options": ["0", "0.5", "1", "-1"],
+    "answer": "1",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0006",
+    "question": "What is the derivative of f(x) = x³?",
+    "options": ["3x²", "x²", "3x", "x³"],
+    "answer": "3x²",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0007",
+    "question": "What is the area of a circle with radius 5?",
+    "options": ["25π", "10π", "50π", "100π"],
+    "answer": "25π",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0008",
+    "question": "What is the sum of the interior angles of a triangle?",
+    "options": ["90°", "180°", "270°", "360°"],
+    "answer": "180°",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0009",
+    "question": "What is the next number in the sequence: 2, 4, 8, 16, ...?",
+    "options": ["18", "20", "24", "32"],
+    "answer": "32",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0010",
+    "question": "What is the value of log₁₀(100)?",
+    "options": ["1", "2", "10", "100"],
+    "answer": "2",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0011",
+    "question": "What is the solution set of the inequality 3x - 5 > 1?",
+    "options": ["x > 2", "x > -2", "x < 2", "x < -2"],
+    "answer": "x > 2",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0012",
+    "question": "If a triangle has sides of length 3, 4, and 5, what type of triangle is it?",
+    "options": ["Equilateral", "Isosceles", "Right", "Obtuse"],
+    "answer": "Right",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0013",
+    "question": "What is the median of the data set: 3, 7, 8, 5, 12, 14, 21, 13, 18?",
+    "options": ["8", "12", "13", "14"],
+    "answer": "12",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0014",
+    "question": "What is the sum of the first 10 natural numbers?",
+    "options": ["45", "50", "55", "60"],
+    "answer": "55",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0015",
+    "question": "What is the standard form of the equation of a circle?",
+    "options": ["(x - h)² + (y - k)² = r²", "x² + y² = r", "x² + y² = r²", "(x + h)² + (y + k)² = r²"],
+    "answer": "(x - h)² + (y - k)² = r²",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0016",
+    "question": "What is the factorial of 5 (5!)?",
+    "options": ["120", "24", "60", "720"],
+    "answer": "120",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0017",
+    "question": "What is the probability of flipping a coin and getting heads?",
+    "options": ["1", "0.5", "0.25", "0"],
+    "answer": "0.5",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0018",
+    "question": "What is the value of 7²?",
+    "options": ["14", "42", "49", "56"],
+    "answer": "49",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0019",
+    "question": "What is the distance formula between points (x₁, y₁) and (x₂, y₂)?",
+    "options": ["√((x₂ - x₁)² + (y₂ - y₁)²)", "(x₂ - x₁) + (y₂ - y₁)", "√(x₁ + x₂) + (y₁ + y₂)", "((x₂ - x₁)² + (y₂ - y₁)²)²"],
+    "answer": "√((x₂ - x₁)² + (y₂ - y₁)²)",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0020",
+    "question": "What is the intercept of the line y = 3x + 4?",
+    "options": ["3", "4", "0", "7"],
+    "answer": "4",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0021",
+    "question": "What is the solution to the system: x + y = 6 and x - y = 2?",
+    "options": ["x=4, y=2", "x=2, y=4", "x=3, y=3", "x=6, y=0"],
+    "answer": "x=4, y=2",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0022",
+    "question": "What is the binomial coefficient 'n choose k' formula?",
+    "options": ["n! / (k! (n - k)!)", "n! * k!", "n! / (k! + (n - k)!)", "n! - k!"],
+    "answer": "n! / (k! (n - k)!)",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0023",
+    "question": "What is the value of e (Euler's number) approximately?",
+    "options": ["2.71", "3.14", "1.41", "1.62"],
+    "answer": "2.71",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0024",
+    "question": "What is the angle sum of a quadrilateral?",
+    "options": ["180°", "360°", "270°", "90°"],
+    "answer": "360°",
+    "category": "Mathematics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-MATH-0025",
+    "question": "If f(x) = 2x + 3, what is f⁻¹(7)?",
+    "options": ["2", "3", "5", "7"],
+    "answer": "2",
+    "category": "Mathematics",
+    "level": "High School"
+  }
+]

@@ -1,0 +1,202 @@
+[
+  {
+    "id": "MS-PHYS-0001",
+    "question": "What is the force that pulls objects toward the Earth?",
+    "options": ["Magnetism", "Friction", "Gravity", "Electricity"],
+    "answer": "Gravity",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0002",
+    "question": "Which unit is used to measure force?",
+    "options": ["Watt", "Newton", "Joule", "Pascal"],
+    "answer": "Newton",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0003",
+    "question": "What is the formula for speed?",
+    "options": ["Speed = Distance × Time", "Speed = Distance / Time", "Speed = Time / Distance", "Speed = Force × Distance"],
+    "answer": "Speed = Distance / Time",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0004",
+    "question": "Which of the following is a simple machine?",
+    "options": ["Car", "Pulley", "Battery", "Lightbulb"],
+    "answer": "Pulley",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0005",
+    "question": "What type of energy does a moving object have?",
+    "options": ["Potential energy", "Kinetic energy", "Chemical energy", "Thermal energy"],
+    "answer": "Kinetic energy",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0006",
+    "question": "What do we use to measure temperature?",
+    "options": ["Thermometer", "Barometer", "Ruler", "Scale"],
+    "answer": "Thermometer",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0007",
+    "question": "What happens to the particles of matter when heated?",
+    "options": ["They stop moving", "They slow down", "They move faster", "They disappear"],
+    "answer": "They move faster",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0008",
+    "question": "Which of these is not a state of matter?",
+    "options": ["Solid", "Liquid", "Gas", "Energy"],
+    "answer": "Energy",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0009",
+    "question": "Which of the following is a non-contact force?",
+    "options": ["Friction", "Gravity", "Push", "Pull"],
+    "answer": "Gravity",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0010",
+    "question": "What is the standard unit of energy?",
+    "options": ["Joule", "Newton", "Meter", "Watt"],
+    "answer": "Joule",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0011",
+    "question": "Sound travels fastest through which medium?",
+    "options": ["Air", "Water", "Steel", "Vacuum"],
+    "answer": "Steel",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0012",
+    "question": "What color of light has the highest energy?",
+    "options": ["Red", "Green", "Blue", "Violet"],
+    "answer": "Violet",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0013",
+    "question": "What type of energy is stored in a battery?",
+    "options": ["Thermal energy", "Chemical energy", "Kinetic energy", "Solar energy"],
+    "answer": "Chemical energy",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0014",
+    "question": "What does a convex lens do to light rays?",
+    "options": ["Spreads them out", "Bends them inward", "Reflects them", "Absorbs them"],
+    "answer": "Bends them inward",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0015",
+    "question": "What is inertia?",
+    "options": ["Force of gravity", "Resistance to change in motion", "Measure of energy", "Speed of an object"],
+    "answer": "Resistance to change in motion",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0016",
+    "question": "Which tool measures electric current?",
+    "options": ["Thermometer", "Ammeter", "Voltmeter", "Barometer"],
+    "answer": "Ammeter",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0017",
+    "question": "What is friction?",
+    "options": ["A pulling force", "A pushing force", "A force that opposes motion", "A magnetic force"],
+    "answer": "A force that opposes motion",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0018",
+    "question": "In which direction does heat flow?",
+    "options": ["Cold to hot", "Hot to cold", "Upward only", "Downward only"],
+    "answer": "Hot to cold",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0019",
+    "question": "What is the speed of light in vacuum approximately?",
+    "options": ["3,000 km/s", "30,000 km/s", "300,000 km/s", "3,000,000 km/s"],
+    "answer": "300,000 km/s",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0020",
+    "question": "Which planet has the strongest gravity?",
+    "options": ["Earth", "Mars", "Jupiter", "Venus"],
+    "answer": "Jupiter",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0021",
+    "question": "Which device converts electrical energy to sound?",
+    "options": ["Motor", "Speaker", "Bulb", "Battery"],
+    "answer": "Speaker",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0022",
+    "question": "What is a conductor?",
+    "options": ["A material that blocks electricity", "A material that allows electricity to flow", "A magnetic material", "An insulator"],
+    "answer": "A material that allows electricity to flow",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0023",
+    "question": "What is the main source of energy for Earth?",
+    "options": ["Wind", "Coal", "The Moon", "The Sun"],
+    "answer": "The Sun",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0024",
+    "question": "Which force slows down a falling object with a parachute?",
+    "options": ["Gravity", "Air resistance", "Magnetism", "Tension"],
+    "answer": "Air resistance",
+    "category": "Physics",
+    "level": "Middle School"
+  },
+  {
+    "id": "MS-PHYS-0025",
+    "question": "Which form of energy comes from the vibration of particles?",
+    "options": ["Light", "Sound", "Heat", "Magnetic"],
+    "answer": "Sound",
+    "category": "Physics",
+    "level": "Middle School"
+  }
+]

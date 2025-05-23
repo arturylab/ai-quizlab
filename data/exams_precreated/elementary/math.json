@@ -1,0 +1,202 @@
+[
+  {
+    "id": "EL-MATH-0001",
+    "question": "What is 5 + 3?",
+    "options": ["6", "7", "8", "9"],
+    "answer": "8",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0002",
+    "question": "What is the value of 10 - 4?",
+    "options": ["6", "5", "7", "4"],
+    "answer": "6",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0003",
+    "question": "Which number is even?",
+    "options": ["3", "7", "4", "9"],
+    "answer": "4",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0004",
+    "question": "What is 2 x 3?",
+    "options": ["6", "5", "4", "3"],
+    "answer": "6",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0005",
+    "question": "Which number comes after 12?",
+    "options": ["11", "13", "14", "12"],
+    "answer": "13",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0006",
+    "question": "What is half of 10?",
+    "options": ["4", "6", "5", "3"],
+    "answer": "5",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0007",
+    "question": "Which shape has 4 equal sides?",
+    "options": ["Triangle", "Rectangle", "Circle", "Square"],
+    "answer": "Square",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0008",
+    "question": "What is 15 divided by 3?",
+    "options": ["4", "5", "3", "6"],
+    "answer": "5",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0009",
+    "question": "What is 7 + 6?",
+    "options": ["12", "13", "14", "11"],
+    "answer": "13",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0010",
+    "question": "Which is the smallest number?",
+    "options": ["2", "9", "4", "7"],
+    "answer": "2",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0011",
+    "question": "What is the next number in the sequence: 2, 4, 6, __?",
+    "options": ["7", "8", "10", "5"],
+    "answer": "8",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0012",
+    "question": "How many sides does a triangle have?",
+    "options": ["3", "4", "5", "6"],
+    "answer": "3",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0013",
+    "question": "What is 4 + 4?",
+    "options": ["6", "8", "7", "9"],
+    "answer": "8",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0014",
+    "question": "Which number is greater: 12 or 15?",
+    "options": ["12", "15", "Equal", "Cannot be compared"],
+    "answer": "15",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0015",
+    "question": "What is 9 - 3?",
+    "options": ["6", "7", "5", "4"],
+    "answer": "6",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0016",
+    "question": "Which shape has no corners?",
+    "options": ["Circle", "Square", "Triangle", "Rectangle"],
+    "answer": "Circle",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0017",
+    "question": "What is 2 + 5?",
+    "options": ["6", "7", "8", "9"],
+    "answer": "7",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0018",
+    "question": "Which number is odd?",
+    "options": ["8", "10", "7", "6"],
+    "answer": "7",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0019",
+    "question": "How many legs do 3 cats have?",
+    "options": ["12", "8", "6", "10"],
+    "answer": "12",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0020",
+    "question": "What is 6 x 1?",
+    "options": ["5", "6", "7", "8"],
+    "answer": "6",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0021",
+    "question": "Which number is missing: 1, 2, __, 4?",
+    "options": ["5", "2", "3", "6"],
+    "answer": "3",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0022",
+    "question": "What time is it if the clock shows 3:00?",
+    "options": ["Midnight", "Morning", "Three o'clock", "Lunch time"],
+    "answer": "Three o'clock",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0023",
+    "question": "How many fingers are on one hand?",
+    "options": ["4", "5", "6", "10"],
+    "answer": "5",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0024",
+    "question": "What is 20 - 10?",
+    "options": ["9", "10", "11", "8"],
+    "answer": "10",
+    "category": "Mathematics",
+    "level": "Elementary"
+  },
+  {
+    "id": "EL-MATH-0025",
+    "question": "What is the double of 4?",
+    "options": ["8", "6", "7", "5"],
+    "answer": "8",
+    "category": "Mathematics",
+    "level": "Elementary"
+  }
+]

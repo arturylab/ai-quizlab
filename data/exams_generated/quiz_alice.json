@@ -1,0 +1,67 @@
+[
+    {
+        "id": "EL-MATH-0001",
+        "question": "What is 5 + 3?",
+        "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+        ],
+        "answer": "8",
+        "category": "Mathematics",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-PHYS-0001",
+        "question": "What force pulls objects toward the Earth?",
+        "options": [
+            "Magnetism",
+            "Electricity",
+            "Gravity",
+            "Friction"
+        ],
+        "answer": "Gravity",
+        "category": "Physics",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-CHEM-0001",
+        "question": "What is water made of?",
+        "options": [
+            "Oxygen only",
+            "Hydrogen only",
+            "Hydrogen and oxygen",
+            "Carbon and oxygen"
+        ],
+        "answer": "Hydrogen and oxygen",
+        "category": "Chemistry",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-BIOL-0001",
+        "question": "What do all living things need to survive?",
+        "options": [
+            "Sunlight, water, and air",
+            "Books, pencils, and chairs",
+            "Clothes, toys, and TV",
+            "Music, dance, and games"
+        ],
+        "answer": "Sunlight, water, and air",
+        "category": "Biology",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-CS-0001",
+        "question": "What is a computer?",
+        "options": [
+            "A type of animal",
+            "A machine that thinks",
+            "A machine that processes information",
+            "A kind of food"
+        ],
+        "answer": "A machine that processes information",
+        "category": "Computer Science",
+        "level": "Elementary"
+    }
+]

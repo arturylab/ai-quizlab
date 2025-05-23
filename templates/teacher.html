@@ -60,12 +60,12 @@
         <!-- Section 3: Create Quiz -->
         <section style="margin-top:32px;">
             <h3>Create Quiz 📝</h3>
-            <form action="/create_quiz" method="post">
+            <form action="/create_quiz" method="post" id="createQuizForm">
                 <table style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th>Category</th>
-                            <th>Number of Questions</th>
+                            <th>Number of Questions<br><span style="font-weight:normal; font-size:12px;">(Max 25 Q per category)</span></th>
                             <th>Level</th>
                         </tr>
                     </thead>
@@ -81,26 +81,28 @@
                         <tr>
                             <td>{{ label }}</td>
                             <td>
-                                <input type="number" name="num_questions_{{ name }}" min="1" max="100" required>
+                                <input type="number" name="num_questions_{{ name }}" min="0" max="25" value="0" required>
                             </td>
                             <td>
                                 <select name="level_{{ name }}" required>
                                     <option value="Elementary">Elementary</option>
                                     <option value="Middle School">Middle School</option>
                                     <option value="High School">High School</option>
-                                    <option value="University">University</option>
                                 </select>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                <div style="text-align: center; margin-top:10px;">
-                    <button type="button" style="width:auto; display:inline-block;">Create Quiz</button>
+                <div style="text-align: center; margin-top:10px; display: flex; justify-content: center; gap: 16px;">
+                    <button type="submit" style="width:auto; display:inline-block;">Create Quiz</button>
+                    <a href="{{ url_for('exam_teacher') }}">
+                        <button type="button" style="width:auto; display:inline-block;">Go to Quiz</button>
+                    </a>
                 </div>
+                <div id="quizMessage" style="margin-top:12px; text-align: center; color:green;"></div>
             </form>
         </section>
-        
         
         <!-- Section 3: Statistics -->
         <section style="margin-top:32px;">
@@ -136,5 +138,6 @@
             </form>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,202 @@
+[
+  {
+    "id": "HS-PHYS-0001",
+    "question": "What is the formula for calculating velocity?",
+    "options": ["v = d / t", "v = t / d", "v = d * t", "v = d + t"],
+    "answer": "v = d / t",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0002",
+    "question": "What is Newton's Second Law?",
+    "options": ["F = m * a", "F = m / a", "F = a / m", "F = m + a"],
+    "answer": "F = m * a",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0003",
+    "question": "What is the unit of force?",
+    "options": ["Newton", "Joule", "Watt", "Pascal"],
+    "answer": "Newton",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0004",
+    "question": "What is the acceleration due to gravity on Earth?",
+    "options": ["9.8 m/s²", "8.9 m/s²", "10 m/s²", "9.2 m/s²"],
+    "answer": "9.8 m/s²",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0005",
+    "question": "What type of energy does a stretched spring have?",
+    "options": ["Kinetic energy", "Potential energy", "Thermal energy", "Nuclear energy"],
+    "answer": "Potential energy",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0006",
+    "question": "What is the SI unit of work?",
+    "options": ["Joule", "Newton", "Watt", "Pascal"],
+    "answer": "Joule",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0007",
+    "question": "What is the formula for kinetic energy?",
+    "options": ["KE = 1/2 mv²", "KE = mgh", "KE = mv", "KE = mg"],
+    "answer": "KE = 1/2 mv²",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0008",
+    "question": "What is the unit of power?",
+    "options": ["Watt", "Joule", "Newton", "Pascal"],
+    "answer": "Watt",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0009",
+    "question": "What does Ohm’s Law state?",
+    "options": ["V = IR", "P = IV", "E = mc²", "F = ma"],
+    "answer": "V = IR",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0010",
+    "question": "What is the speed of light in vacuum?",
+    "options": ["3 x 10^8 m/s", "3 x 10^6 m/s", "3 x 10^5 m/s", "3 x 10^7 m/s"],
+    "answer": "3 x 10^8 m/s",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0011",
+    "question": "What is the unit of electric current?",
+    "options": ["Ampere", "Volt", "Ohm", "Watt"],
+    "answer": "Ampere",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0012",
+    "question": "Which law explains the relationship between pressure and volume of a gas?",
+    "options": ["Boyle’s Law", "Charles’s Law", "Newton’s Law", "Ohm’s Law"],
+    "answer": "Boyle’s Law",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0013",
+    "question": "What is the formula for gravitational potential energy?",
+    "options": ["PE = mgh", "PE = 1/2 mv²", "PE = Fd", "PE = mv"],
+    "answer": "PE = mgh",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0014",
+    "question": "What does the Law of Conservation of Energy state?",
+    "options": ["Energy cannot be created or destroyed", "Energy increases over time", "Energy is always lost", "Energy is not measurable"],
+    "answer": "Energy cannot be created or destroyed",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0015",
+    "question": "What is the SI unit of frequency?",
+    "options": ["Hertz", "Joule", "Newton", "Watt"],
+    "answer": "Hertz",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0016",
+    "question": "What type of wave is sound?",
+    "options": ["Mechanical wave", "Electromagnetic wave", "Light wave", "Radio wave"],
+    "answer": "Mechanical wave",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0017",
+    "question": "What is the relationship between wavelength and frequency?",
+    "options": ["They are inversely proportional", "They are directly proportional", "They are equal", "No relation"],
+    "answer": "They are inversely proportional",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0018",
+    "question": "What does a convex lens do to light rays?",
+    "options": ["Converges them", "Diverges them", "Absorbs them", "Reflects them"],
+    "answer": "Converges them",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0019",
+    "question": "What is the unit of electric resistance?",
+    "options": ["Ohm", "Ampere", "Volt", "Watt"],
+    "answer": "Ohm",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0020",
+    "question": "What force keeps planets in orbit around the sun?",
+    "options": ["Gravitational force", "Magnetic force", "Frictional force", "Nuclear force"],
+    "answer": "Gravitational force",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0021",
+    "question": "What is the momentum of an object with mass 3 kg moving at 4 m/s?",
+    "options": ["12 kg·m/s", "7 kg·m/s", "1.33 kg·m/s", "0.75 kg·m/s"],
+    "answer": "12 kg·m/s",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0022",
+    "question": "Which of the following is a scalar quantity?",
+    "options": ["Speed", "Velocity", "Displacement", "Acceleration"],
+    "answer": "Speed",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0023",
+    "question": "What is the period of a wave?",
+    "options": ["Time taken for one complete cycle", "Number of cycles per second", "Distance between two crests", "Height of the wave"],
+    "answer": "Time taken for one complete cycle",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0024",
+    "question": "What type of energy transformation occurs in a hydroelectric dam?",
+    "options": ["Potential energy to electrical energy", "Kinetic energy to thermal energy", "Chemical energy to mechanical energy", "Nuclear energy to light energy"],
+    "answer": "Potential energy to electrical energy",
+    "category": "Physics",
+    "level": "High School"
+  },
+  {
+    "id": "HS-PHYS-0025",
+    "question": "What is the main source of energy for the Earth’s climate system?",
+    "options": ["The Sun", "The Moon", "Volcanic activity", "The Earth’s core"],
+    "answer": "The Sun",
+    "category": "Physics",
+    "level": "High School"
+  }
+]

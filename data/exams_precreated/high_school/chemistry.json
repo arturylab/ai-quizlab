@@ -1,0 +1,202 @@
+[
+  {
+    "id": "HS-CHEM-0001",
+    "question": "What is the atomic number of carbon?",
+    "options": ["6", "12", "14", "8"],
+    "answer": "6",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0002",
+    "question": "Which element is a noble gas?",
+    "options": ["Neon", "Oxygen", "Nitrogen", "Chlorine"],
+    "answer": "Neon",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0003",
+    "question": "What is the chemical formula for water?",
+    "options": ["H2O", "CO2", "O2", "NaCl"],
+    "answer": "H2O",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0004",
+    "question": "What is the pH of a neutral solution?",
+    "options": ["7", "0", "14", "1"],
+    "answer": "7",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0005",
+    "question": "What type of bond involves sharing electrons?",
+    "options": ["Covalent bond", "Ionic bond", "Metallic bond", "Hydrogen bond"],
+    "answer": "Covalent bond",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0006",
+    "question": "Which is an example of a chemical change?",
+    "options": ["Burning wood", "Melting ice", "Dissolving sugar", "Breaking glass"],
+    "answer": "Burning wood",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0007",
+    "question": "What is the charge of a proton?",
+    "options": ["Positive", "Negative", "Neutral", "Depends on the element"],
+    "answer": "Positive",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0008",
+    "question": "Which gas is most abundant in Earth's atmosphere?",
+    "options": ["Nitrogen", "Oxygen", "Carbon dioxide", "Argon"],
+    "answer": "Nitrogen",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0009",
+    "question": "What is Avogadro's number?",
+    "options": ["6.022 x 10^23", "3.14", "9.8", "1.6 x 10^-19"],
+    "answer": "6.022 x 10^23",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0010",
+    "question": "What is the molar mass of water (H2O)?",
+    "options": ["18 g/mol", "16 g/mol", "20 g/mol", "22 g/mol"],
+    "answer": "18 g/mol",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0011",
+    "question": "What is the chemical symbol for gold?",
+    "options": ["Au", "Ag", "Gd", "Ga"],
+    "answer": "Au",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0012",
+    "question": "What does the Law of Conservation of Mass state?",
+    "options": ["Mass is neither created nor destroyed", "Mass increases during reactions", "Mass decreases during reactions", "Mass changes into energy"],
+    "answer": "Mass is neither created nor destroyed",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0013",
+    "question": "Which particle determines the identity of an element?",
+    "options": ["Proton", "Neutron", "Electron", "Ion"],
+    "answer": "Proton",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0014",
+    "question": "What is the valence electron count for oxygen?",
+    "options": ["6", "2", "8", "4"],
+    "answer": "6",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0015",
+    "question": "What type of reaction is combustion?",
+    "options": ["Exothermic", "Endothermic", "Neutral", "None of these"],
+    "answer": "Exothermic",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0016",
+    "question": "Which of the following is an acid?",
+    "options": ["HCl", "NaOH", "NaCl", "H2O"],
+    "answer": "HCl",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0017",
+    "question": "What is the main component of natural gas?",
+    "options": ["Methane", "Ethane", "Propane", "Butane"],
+    "answer": "Methane",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0018",
+    "question": "What is the electron configuration of hydrogen?",
+    "options": ["1s1", "1s2", "2s1", "2p1"],
+    "answer": "1s1",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0019",
+    "question": "What is a catalyst?",
+    "options": ["Substance that speeds up a reaction", "Substance that slows down a reaction", "Product of a reaction", "Reactant"],
+    "answer": "Substance that speeds up a reaction",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0020",
+    "question": "Which element has the highest electronegativity?",
+    "options": ["Fluorine", "Oxygen", "Nitrogen", "Chlorine"],
+    "answer": "Fluorine",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0021",
+    "question": "What is the charge of an electron?",
+    "options": ["Negative", "Positive", "Neutral", "Depends on the atom"],
+    "answer": "Negative",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0022",
+    "question": "What is the name of the compound NaCl?",
+    "options": ["Sodium chloride", "Sodium oxide", "Potassium chloride", "Calcium chloride"],
+    "answer": "Sodium chloride",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0023",
+    "question": "What is the process of a solid changing directly to gas called?",
+    "options": ["Sublimation", "Condensation", "Evaporation", "Melting"],
+    "answer": "Sublimation",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0024",
+    "question": "Which acid is found in vinegar?",
+    "options": ["Acetic acid", "Sulfuric acid", "Hydrochloric acid", "Nitric acid"],
+    "answer": "Acetic acid",
+    "category": "Chemistry",
+    "level": "High School"
+  },
+  {
+    "id": "HS-CHEM-0025",
+    "question": "What is the typical shape of a methane molecule (CH4)?",
+    "options": ["Tetrahedral", "Linear", "Trigonal planar", "Bent"],
+    "answer": "Tetrahedral",
+    "category": "Chemistry",
+    "level": "High School"
+  }
+]

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generated Quiz - AI QuizLab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="teacher-container">
+        <h2>Generated Quiz 📝 for {{ teacher_name }} 👩‍🏫👨‍🏫</h2>
+        {% if quiz_questions %}
+            <ol>
+                {% for q in quiz_questions %}
+                    <li style="margin-bottom: 24px;">
+                        <div>
+                            <strong>Question:</strong> {{ q.get('question', 'No question text') }}<br>
+                            <strong>Category:</strong> {{ q.get('category', 'N/A') }} | <strong>Level:</strong> {{ q.get('level', 'N/A') }}
+                        </div>
+                        {% if q.get('options') %}
+                            <ul style="list-style-type: lower-alpha;">
+                                {% for opt in q.options %}
+                                    <li>{{ opt }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if q.get('answer') %}
+                            <div><strong>Answer:</strong> {{ q.answer }}</div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <div style="color: red; font-weight: bold; margin-top: 32px;">
+                No quiz found for this teacher.
+            </div>
+        {% endif %}
+        <div style="margin-top: 32px; text-align: center;">
+            <a href="{{ url_for('teacher') }}">
+                <button type="button" style="width:auto; display:inline-block;">Back to Dashboard</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
