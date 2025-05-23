@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student - AI QuizLab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Welcome to AI QuizLab {{ student_name }} 🤖!</h2>
+        <p style="text-align:center; margin-bottom: 18px;">
+            This educational game consists of multiple-choice questions covering various science topics:<br>
+        </p>
+        <p style="text-align: center; font-weight: bold;">
+            Mathematics ➕ &nbsp;| Physics 🧲 &nbsp;| Chemistry ⚗️ &nbsp;| Biology 🧬 &nbsp;| Computer Science 💻
+        </p>
+        <p style="text-align:center;">
+            Each question has four options.<br>Try your best and track your score!
+        </p>
+        <form action="/quiz" method="get" style="margin-bottom: 16px;">
+            <button type="submit">Start Quiz</button>
+        </form>
+        <form action="/logout" method="post">
+            <button type="submit" style="background:#e53935;">Logout</button>
+        </form>
+    </div>
+</body>
+</html>

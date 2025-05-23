@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - AI QuizLab 🤖</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login as Student 🎓 or Teacher 👩‍🏫</h2>
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Login</button>
+            <p style="text-align: center;">
+                Are you a new teacher? 
+                <a href="{{ url_for('register') }}" style="color: inherit; text-decoration: underline;">Register here</a>
+            </p>
+        </form>
+    </div>
+</body>
+</html>

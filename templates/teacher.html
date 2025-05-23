@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Dashboard - AI QuizLab 🤖</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="teacher-container">
+        <h2>Welcome, teacher {{ teacher_name }}! 👩‍🏫</h2>
+        
+        <!-- Section 1: File Uploader -->
+        <section style="margin-top:32px; text-align: center;">
+            <h3>Create Student List in CSV</h3>
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <br>
+                <div style="text-align: center; margin-top:10px;">
+                    <button type="submit" style="width:auto; display:inline-block;">Upload List</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Section 2: Student List -->
+        <section>
+            <h3>Student List 👥</h3>
+            <table style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Group</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students_list %}
+                        {% for student in students_list %}
+                        <tr>
+                            <td>{{ student["ID"] }}</td>
+                            <td>{{ student["Name"] }}</td>
+                            <td>{{ student["Group"] }}</td>
+                            <td>{{ student["Username"] }}</td>
+                            <td>{{ student["Password"] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Empty table body -->
+                    {% endif %}
+                </tbody>
+            </table>
+            <div style="text-align: center; margin-top:10px;">
+                <a href="{{ url_for('download_students_csv') }}">
+                    <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
+                </a>
+            </div>
+        </section>
+
+        <!-- Section 3: Create Quiz -->
+        <section style="margin-top:32px;">
+            <h3>Create Quiz 📝</h3>
+            <form action="/create_quiz" method="post">
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Number of Questions</th>
+                            <th>Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set categories = [
+                            ('Mathematics', 'math'),
+                            ('Physics', 'physics'),
+                            ('Chemistry', 'chemistry'),
+                            ('Biology', 'biology'),
+                            ('Computer Science', 'cs')
+                        ] %}
+                        {% for label, name in categories %}
+                        <tr>
+                            <td>{{ label }}</td>
+                            <td>
+                                <input type="number" name="num_questions_{{ name }}" min="1" max="100" required>
+                            </td>
+                            <td>
+                                <select name="level_{{ name }}" required>
+                                    <option value="Elementary">Elementary</option>
+                                    <option value="Middle School">Middle School</option>
+                                    <option value="High School">High School</option>
+                                    <option value="University">University</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div style="text-align: center; margin-top:10px;">
+                    <button type="button" style="width:auto; display:inline-block;">Create Quiz</button>
+                </div>
+            </form>
+        </section>
+        
+        
+        <!-- Section 3: Statistics -->
+        <section style="margin-top:32px;">
+            <h3>Statistics 📊</h3>
+            <table style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Group</th>
+                        <th>Mathematics</th>
+                        <th>Physics</th>
+                        <th>Chemistry</th>
+                        <th>Biology</th>
+                        <th>Computer Science</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Empty table body -->
+                </tbody>
+            </table>
+            <div style="text-align: center; margin-top:10px;">
+                <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
+            </div>
+        </section>
+
+        
+        <!-- Section 5: Logout -->
+        <div style="position: absolute; top: 24px; right: 32px;">
+            <form action="/logout" method="post" style="margin:0;">
+                <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
