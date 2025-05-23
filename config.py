@@ -1,12 +1,15 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(basedir, '.env'))
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'my_secret_key'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:postgres1234@localhost:5432/ai-quizlab'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
