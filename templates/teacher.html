@@ -122,11 +122,31 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Empty table body -->
+                    {% if results_list %}
+                        {% for result in results_list %}
+                        <tr>
+                            <td>{{ result["id"] }}</td>
+                            <td>{{ result["name"] }}</td>
+                            <td>{{ result["group"] }}</td>
+                            <td>{{ result["mathematics"] }}</td>
+                            <td>{{ result["physics"] }}</td>
+                            <td>{{ result["chemistry"] }}</td>
+                            <td>{{ result["biology"] }}</td>
+                            <td>{{ result["computer_science"] }}</td>
+                            <td>{{ result["total"] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" style="text-align:center;">No results yet.</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
             <div style="text-align: center; margin-top:10px;">
-                <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
+                <a href="{{ url_for('download_results_csv') }}">
+                    <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
+                </a>
             </div>
         </section>
 

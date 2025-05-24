@@ -8,7 +8,27 @@
 <body>
     <div class="teacher-container">
         <h2>Quiz for {{ student_name }} (Teacher: {{ teacher_name }}) 🚀</h2>
-        {% if quiz_questions %}
+        {% if already_done %}
+            <p style="text-align:center; color:red; font-weight:bold;">
+                You have already completed this quiz. You cannot take it again.
+            </p>
+            {% if student_result %}
+                <div style="margin: 24px auto; text-align:center; color:green; font-weight:bold;">
+                    <b>Your Results:</b><br>
+                    Mathematics: {{ student_result.mathematics }}<br>
+                    Physics: {{ student_result.physics }}<br>
+                    Chemistry: {{ student_result.chemistry }}<br>
+                    Biology: {{ student_result.biology }}<br>
+                    Computer Science: {{ student_result.computer_science }}<br>
+                    <b>Total: {{ student_result.total }}</b>
+                </div>
+            {% endif %}
+            <div id="logoutAfterQuiz" style="margin-top:24px; text-align:center;">
+                <form action="/logout" method="post" style="display:inline-block;">
+                    <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
+                </form>
+            </div>
+        {% elif quiz_questions %}
             <form id="studentQuizForm">
                 <ol>
                 {% for q in quiz_questions %}
@@ -37,11 +57,11 @@
                     <button type="submit" style="width:auto; display:inline-block;">Submit Quiz</button>
                 </div>
             </form>
-            {% else %}
+        {% else %}
             <p style="text-align:center; color:red;">
                 No quiz available for your group. Please contact your teacher.
             </p>
-            {% endif %}
+        {% endif %}
         <div id="quizResult" style="margin-top:24px; text-align:center;"></div>
         <div id="logoutAfterQuiz" style="display:none; margin-top:24px; text-align:center;">
             <form action="/logout" method="post" style="display:inline-block;">

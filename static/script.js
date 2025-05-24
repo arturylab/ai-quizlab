@@ -24,4 +24,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    document.getElementById('createQuizForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('quizMessage').textContent = data.message;
+        });
+    });
 });

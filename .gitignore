@@ -1,5 +1,6 @@
 **/__pycache__/
 venv/
+data/exams_generated/*json
 data/results/*json
 data/teachers/*json
 

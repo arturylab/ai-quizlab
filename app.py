@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
 from werkzeug.security import generate_password_hash
 from config import Config
 from models import db, Teacher, Student
@@ -93,12 +93,25 @@ def teacher():
     json_dir = os.path.join('data', 'teachers')
     if not os.path.exists(json_dir):
         os.makedirs(json_dir)
-    teacher = Teacher.query.get(session['teacher_id'])
     json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
     if os.path.exists(json_path):
         with open(json_path, 'r', encoding='utf-8') as f:
             students_list = json.load(f)
-    return render_template('teacher.html', teacher_name=teacher.name, students_list=students_list)
+
+    # Load results for this teacher from JSON, not DB
+    results_list = []
+    results_dir = os.path.join('data', 'results')
+    results_path = os.path.join(results_dir, f'{teacher.username}.json')
+    if os.path.exists(results_path):
+        with open(results_path, 'r', encoding='utf-8') as f:
+            results_list = json.load(f)
+
+    return render_template(
+        'teacher.html',
+        teacher_name=teacher.name,
+        students_list=students_list,
+        results_list=results_list
+    )
 
 @app.route('/upload', methods=['POST'])
 def upload_students():
@@ -194,8 +207,6 @@ def download_students_csv():
         download_name=filename
     )
 
-from flask import jsonify
-
 @app.route('/create_quiz', methods=['POST'])
 def create_quiz():
     if 'teacher_id' not in session:
@@ -279,12 +290,34 @@ def quiz():
     student = Student.query.get(session['student_id'])
     teacher = Teacher.query.get(student.teacher_id) if student else None
     quiz_questions = []
+    already_done = False
+    student_result = None
+
     if teacher:
-        quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
-        if os.path.exists(quiz_path):
-            with open(quiz_path, 'r', encoding='utf-8') as f:
-                quiz_questions = json.load(f)
-    return render_template('quiz.html', student_name=student.name, teacher_name=teacher.name if teacher else "Unknown", quiz_questions=quiz_questions)
+        results_path = os.path.join('data', 'results', f'{teacher.username}.json')
+        if os.path.exists(results_path):
+            with open(results_path, 'r', encoding='utf-8') as f:
+                results_data = json.load(f)
+            for result in results_data:
+                if result.get("student_id") == student.id:
+                    already_done = True
+                    student_result = result
+                    break
+
+        if not already_done:
+            quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
+            if os.path.exists(quiz_path):
+                with open(quiz_path, 'r', encoding='utf-8') as f:
+                    quiz_questions = json.load(f)
+
+    return render_template(
+        'quiz.html',
+        student_name=student.name,
+        teacher_name=teacher.name if teacher else "Unknown",
+        quiz_questions=quiz_questions,
+        already_done=already_done,
+        student_result=student_result
+    )
 
 @app.route('/submit_quiz', methods=['POST'])
 def submit_quiz():
@@ -295,6 +328,24 @@ def submit_quiz():
     teacher = Teacher.query.get(student.teacher_id) if student else None
     if not teacher:
         return jsonify(success=False, message="Teacher not found.")
+
+    # Ruta del JSON de resultados del maestro
+    results_dir = os.path.join('data', 'results')
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    results_filename = f"{teacher.username}.json"
+    results_path = os.path.join(results_dir, results_filename)
+
+    # Cargar resultados existentes del maestro
+    results_data = []
+    if os.path.exists(results_path):
+        with open(results_path, 'r', encoding='utf-8') as f:
+            results_data = json.load(f)
+
+    # Verificar si el estudiante ya realizó el examen
+    for result in results_data:
+        if result.get("student_id") == student.id:
+            return jsonify(success=False, message="You have already completed this quiz. You cannot retake it.")
 
     # Cargar el quiz del maestro
     quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
@@ -350,14 +401,10 @@ def submit_quiz():
         "total": f"{total_correct}/{len(quiz_questions)}"
     }
 
-    # Guardar en JSON
-    results_dir = os.path.join('data', 'results')
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-    result_filename = f"{student.username}_{teacher.username}.json"
-    result_path = os.path.join(results_dir, result_filename)
-    with open(result_path, 'w', encoding='utf-8') as f:
-        json.dump(result_data, f, ensure_ascii=False, indent=4)
+    # Agregar el resultado al JSON del maestro
+    results_data.append(result_data)
+    with open(results_path, 'w', encoding='utf-8') as f:
+        json.dump(results_data, f, ensure_ascii=False, indent=4)
 
     # Guardar en la base de datos (tabla Result)
     from models import Result
@@ -388,6 +435,44 @@ def submit_quiz():
 
     return jsonify(success=True, message="Quiz submitted successfully! 🎉", summary=summary)
 
+@app.route('/download_results_csv')
+def download_results_csv():
+    if 'teacher_id' not in session:
+        flash('You must be logged in as a teacher.', 'danger')
+        return redirect(url_for('login'))
+    teacher = Teacher.query.get(session['teacher_id'])
+    results_dir = os.path.join('data', 'results')
+    results_path = os.path.join(results_dir, f'{teacher.username}.json')
+    if not os.path.exists(results_path):
+        flash('No results found to download.', 'danger')
+        return redirect(url_for('teacher'))
+
+    with open(results_path, 'r', encoding='utf-8') as f:
+        results_list = json.load(f)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Name', 'Group', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Total'])
+    for result in results_list:
+        writer.writerow([
+            result.get('id', ''),
+            result.get('name', ''),
+            result.get('group', ''),
+            result.get('mathematics', ''),
+            result.get('physics', ''),
+            result.get('chemistry', ''),
+            result.get('biology', ''),
+            result.get('computer_science', ''),
+            result.get('total', '')
+        ])
+    output.seek(0)
+    filename = f"results_{teacher.username}.csv"
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=filename
+    )
 
 if __name__ == '__main__':
     with app.app_context():
