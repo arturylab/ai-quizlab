@@ -22,5 +22,15 @@
             </p>
         </form>
     </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} {% if category == 'danger' %}alert-danger{% else %}alert-success{% endif %}" 
+                     style="text-align:center; margin-top:15px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 </body>
 </html>

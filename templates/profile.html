@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Profile - AI QuizLab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="teacher-container" style="max-width: 500px; margin: 40px auto;">
+        <h2 style="text-align:center;">Teacher Profile 👩‍🏫👨‍🏫</h2>
+        <form method="post" action="{{ url_for('profile') }}">
+            <table style="margin: 0 auto;">
+                <tr>
+                    <th style="text-align:left; padding-right: 16px;">Name:</th>
+                    <td id="nameCell" data-original="{{ teacher.name }}">{{ teacher.name }}</td>
+                    <td>
+                        <span id="editNameBtn" style="cursor:pointer;">✏️</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left; padding-right: 16px;">Email:</th>
+                    <td id="emailCell" data-original="{{ teacher.email }}">{{ teacher.email }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th style="text-align:left; padding-right: 16px;">School:</th>
+                    <td id="schoolCell" data-original="{{ teacher.school }}">{{ teacher.school }}</td>
+                    <td>
+                        <span id="editSchoolBtn" style="cursor:pointer;">✏️</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left; padding-right: 16px;">Username:</th>
+                    <td>{{ teacher.username }}</td>
+                    <td></td>
+                </tr>
+                <tr id="passwordRow">
+                    <th style="text-align:left; padding-right: 16px;">Password:</th>
+                    <td style="color: #bbb; font-style: italic;">********</td>
+                    <td>
+                        <span id="editPasswordBtn" style="cursor:pointer;">✏️</span>
+                    </td>
+                </tr>
+                <tr id="passwordEditRow" style="display:none;">
+                    <th style="text-align:left; padding-right: 16px;">New Password:</th>
+                    <td colspan="2">
+                        <input type="password" id="passwordInput" name="password" placeholder="New password" style="width:100%; margin-bottom:8px;">
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" placeholder="Confirm new password" style="width:100%;">
+                    </td>
+                </tr>
+            </table>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top:32px;">
+                <button type="submit" style="width:auto;">Update</button>
+                <button type="button" id="cancelEditBtn" style="background:#e53935; width:auto;">Cancel</button>
+                <a href="{{ url_for('teacher') }}">
+                    <button type="button" style="width:auto;">Back to Dashboard</button>
+                </a>
+            </div>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} {% if category == 'danger' %}alert-danger{% else %}alert-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

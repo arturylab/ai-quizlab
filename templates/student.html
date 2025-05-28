@@ -8,6 +8,13 @@
 <body>
     <div class="login-container">
         <h2>Welcome to AI QuizLab {{ student_name }} 🤖!</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <p style="text-align:center;">Your assigned teacher is {{ teacher_name }}</p>
         <p style="text-align:center; margin-bottom: 18px;">
             This educational game consists of multiple-choice questions covering various science topics:<br>

@@ -1,67 +1,80 @@
 [
     {
-        "id": "EL-MATH-0001",
-        "question": "What is 5 + 3?",
+        "id": "EL-MATH-0015",
+        "question": "What is 9 - 3?",
         "options": [
             "6",
             "7",
-            "8",
-            "9"
+            "5",
+            "4"
         ],
-        "answer": "8",
+        "answer": "6",
         "category": "Mathematics",
         "level": "Elementary"
     },
     {
-        "id": "EL-PHYS-0001",
-        "question": "What force pulls objects toward the Earth?",
+        "id": "EL-MATH-0024",
+        "question": "What is 20 - 10?",
         "options": [
-            "Magnetism",
-            "Electricity",
-            "Gravity",
-            "Friction"
+            "9",
+            "10",
+            "11",
+            "8"
         ],
-        "answer": "Gravity",
+        "answer": "10",
+        "category": "Mathematics",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-PHYS-0010",
+        "question": "Which is faster: a car or a bicycle?",
+        "options": [
+            "Bicycle",
+            "Car",
+            "They are equal",
+            "None"
+        ],
+        "answer": "Car",
         "category": "Physics",
         "level": "Elementary"
     },
     {
-        "id": "EL-CHEM-0001",
-        "question": "What is water made of?",
+        "id": "EL-PHYS-0009",
+        "question": "Which of these is a solid?",
         "options": [
-            "Oxygen only",
-            "Hydrogen only",
-            "Hydrogen and oxygen",
-            "Carbon and oxygen"
+            "Juice",
+            "Air",
+            "Ice",
+            "Steam"
         ],
-        "answer": "Hydrogen and oxygen",
+        "answer": "Ice",
+        "category": "Physics",
+        "level": "Elementary"
+    },
+    {
+        "id": "EL-CHEM-0024",
+        "question": "What tool is used to mix chemicals?",
+        "options": [
+            "Microscope",
+            "Flask",
+            "Clock",
+            "Magnet"
+        ],
+        "answer": "Flask",
         "category": "Chemistry",
         "level": "Elementary"
     },
     {
-        "id": "EL-BIOL-0001",
-        "question": "What do all living things need to survive?",
+        "id": "EL-CHEM-0018",
+        "question": "Which of these can dissolve in water?",
         "options": [
-            "Sunlight, water, and air",
-            "Books, pencils, and chairs",
-            "Clothes, toys, and TV",
-            "Music, dance, and games"
+            "Sand",
+            "Iron",
+            "Salt",
+            "Plastic"
         ],
-        "answer": "Sunlight, water, and air",
-        "category": "Biology",
-        "level": "Elementary"
-    },
-    {
-        "id": "EL-CS-0001",
-        "question": "What is a computer?",
-        "options": [
-            "A type of animal",
-            "A machine that thinks",
-            "A machine that processes information",
-            "A kind of food"
-        ],
-        "answer": "A machine that processes information",
-        "category": "Computer Science",
+        "answer": "Salt",
+        "category": "Chemistry",
         "level": "Elementary"
     }
 ]

@@ -8,6 +8,14 @@
 <body>
     <div class="teacher-container">
         <h2>Welcome, teacher {{ teacher_name }}! 👩‍🏫</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <!-- Section 1: File Uploader -->
         <section style="margin-top:32px; text-align: center;">
@@ -46,7 +54,9 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <!-- Empty table body -->
+                        <tr>
+                            <td colspan="9" style="text-align:center;">No students yet.</td>
+                        </tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -150,13 +160,15 @@
             </div>
         </section>
 
-        
-        <!-- Section 5: Logout -->
-        <div style="position: absolute; top: 24px; right: 32px;">
+        <!-- Section 5: Menu -->
+        <div style="position: absolute; top: 24px; right: 32px; display: flex; gap: 8px;">
+            <a href="{{ url_for('profile') }}">
+                <button type="button" style="background:#1976d2; width:auto; display:inline-block;">Profile</button>
+            </a>
             <form action="/logout" method="post" style="margin:0;">
                 <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
             </form>
-        </div>
+</div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

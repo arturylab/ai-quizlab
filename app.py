@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify, flash
 from werkzeug.security import generate_password_hash
+from datetime import timedelta
 from config import Config
 from models import db, Teacher, Student
 import csv
@@ -11,6 +12,7 @@ import io
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.permanent_session_lifetime = timedelta(minutes=30)
 db.init_app(app)
 
 @app.route('/')
@@ -27,23 +29,28 @@ def login():
         teacher = Teacher.query.filter_by(username=username).first()
         if teacher and teacher.check_password(password):
             session['teacher_id'] = teacher.id
-            flash('Login successful!', 'success')
+            session.permanent = True
+            flash('Login successful! Welcome, teacher.', 'success')
             return redirect(url_for('teacher'))
 
         # Try student login
         student = Student.query.filter_by(username=username).first()
         if student and student.check_password(password):
             session['student_id'] = student.id
-            flash('Login successful!', 'success')
+            session.permanent = True
+            flash('Login successful! Welcome, student.', 'success')
             return redirect(url_for('student'))
 
-        flash('Invalid username or password', 'danger')
+        # Invalid credentials
+        flash('Invalid username or password.', 'danger')
+        return redirect(url_for('login'))
+
     return render_template('login.html')
 
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('teacher_id', None)
-    flash('Logged out successfully.', 'info')
+    flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -62,12 +69,12 @@ def register():
 
         existing_user = Teacher.query.filter_by(username=username).first()
         if existing_user:
-            flash('Username already exists.', 'danger')
+            flash('Username already exists. Please choose another.', 'danger')
             return render_template('register.html')
 
         existing_email = Teacher.query.filter_by(email=email).first()
         if existing_email:
-            flash('Email already registered.', 'danger')
+            flash('Email already registered. Please use another.', 'danger')
             return render_template('register.html')
 
         new_teacher = Teacher(
@@ -79,7 +86,7 @@ def register():
         )
         db.session.add(new_teacher)
         db.session.commit()
-        flash('Teacher registered successfully! You can now log in.', 'success')
+        flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -113,15 +120,47 @@ def teacher():
         results_list=results_list
     )
 
+from flask import flash
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'teacher_id' not in session:
+        return redirect(url_for('login'))
+    teacher = Teacher.query.get(session['teacher_id'])
+
+    if request.method == 'POST':
+        name = request.form.get('name', teacher.name)
+        school = request.form.get('school', teacher.school)
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Actualiza solo si el nombre cambió
+        if name and name != teacher.name:
+            teacher.name = name
+
+        # Actualiza solo si la escuela cambió
+        if school and school != teacher.school:
+            teacher.school = school
+
+        # Actualiza solo si se ingresó un nuevo password
+        if password:
+            if password != confirm_password:
+                return render_template('profile.html', teacher=teacher)
+            teacher.password = generate_password_hash(password)
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    return render_template('profile.html', teacher=teacher)
+
 @app.route('/upload', methods=['POST'])
 def upload_students():
     if 'teacher_id' not in session:
-        flash('You must be logged in as a teacher.', 'danger')
         return redirect(url_for('login'))
 
     file = request.files.get('file')
     if not file or not file.filename.endswith('.csv'):
-        flash('Please upload a valid CSV file.', 'danger')
         return redirect(url_for('teacher'))
 
     csvfile = file.stream.read().decode('utf-8').splitlines()
@@ -169,19 +208,16 @@ def upload_students():
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(students_json, f, ensure_ascii=False, indent=4)
 
-    flash(f'{added} students added successfully! Credentials saved in students_{teacher.username}.json', 'success')
     return redirect(url_for('teacher'))
 
 @app.route('/download_students_csv')
 def download_students_csv():
     if 'teacher_id' not in session:
-        flash('You must be logged in as a teacher.', 'danger')
         return redirect(url_for('login'))
     teacher = Teacher.query.get(session['teacher_id'])
     json_dir = os.path.join('data', 'teachers')
     json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
     if not os.path.exists(json_path):
-        flash('No student list found to download.', 'danger')
         return redirect(url_for('teacher'))
 
     with open(json_path, 'r', encoding='utf-8') as f:
@@ -213,7 +249,6 @@ def create_quiz():
         msg = 'You must be logged in as a teacher.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
-        flash(msg, 'danger')
         return redirect(url_for('login'))
 
     teacher = Teacher.query.get(session['teacher_id'])
@@ -236,13 +271,13 @@ def create_quiz():
             if os.path.exists(exam_path):
                 with open(exam_path, 'r', encoding='utf-8') as f:
                     questions = json.load(f)
+                random.shuffle(questions)
                 quiz_questions.extend(questions[:int(num_questions)])
 
     if not quiz_questions:
         msg = 'No questions selected. Please specify at least one category and number of questions.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
-        flash(msg, 'danger')
         return redirect(url_for('teacher'))
 
     generated_dir = os.path.join('data', 'exams_generated')
@@ -256,7 +291,6 @@ def create_quiz():
     msg = f'Quiz 📝 generated successfully! 😃'
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify(success=True, message=msg)
-    flash(msg, 'success')
     return redirect(url_for('teacher'))
 
 @app.route('/exam_teacher')
@@ -438,13 +472,11 @@ def submit_quiz():
 @app.route('/download_results_csv')
 def download_results_csv():
     if 'teacher_id' not in session:
-        flash('You must be logged in as a teacher.', 'danger')
         return redirect(url_for('login'))
     teacher = Teacher.query.get(session['teacher_id'])
     results_dir = os.path.join('data', 'results')
     results_path = os.path.join(results_dir, f'{teacher.username}.json')
     if not os.path.exists(results_path):
-        flash('No results found to download.', 'danger')
         return redirect(url_for('teacher'))
 
     with open(results_path, 'r', encoding='utf-8') as f:

@@ -103,6 +103,27 @@ section {
     margin-bottom: 32px;
 }
 
+.alert-danger {
+    text-align: center;
+    margin-top: 15px;
+    color: red;
+}
+.alert-success {
+    text-align: center;
+    margin-top: 15px;
+    color: green;
+}
+
+a.back-link {
+    color: inherit;
+    text-decoration: underline;
+}
+a.back-link:visited,
+a.back-link:active,
+a.back-link:focus {
+    color: inherit;
+}
+
 @media (max-width: 1000px) {
     .teacher-container {
         max-width: 98vw;
