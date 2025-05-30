@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 from werkzeug.security import generate_password_hash
 from datetime import timedelta
 from config import Config
-from models import db, Teacher, Student
+from models import db, Teacher, Student, Result
 import csv
 import random
 import string
@@ -14,6 +14,39 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.permanent_session_lifetime = timedelta(minutes=30)
 db.init_app(app)
+
+# ---------- Utility Functions ----------
+
+def get_teacher():
+    """Return the current logged-in teacher object."""
+    return Teacher.query.get(session['teacher_id'])
+
+def get_student():
+    """Return the current logged-in student object."""
+    return Student.query.get(session['student_id'])
+
+def get_json_path(folder, filename):
+    """Return the full path for a JSON file in a given folder."""
+    return os.path.join(folder, filename)
+
+def read_json(path):
+    """Read and return JSON data from a file, or an empty list if not found."""
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def write_json(path, data):
+    """Write data to a JSON file."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+def generate_random_password(length=8):
+    """Generate a random password with letters and digits."""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+# ---------- Routes ----------
 
 @app.route('/')
 def index():
@@ -50,6 +83,7 @@ def login():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('teacher_id', None)
+    session.pop('student_id', None)
     flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
@@ -67,13 +101,11 @@ def register():
             flash('Passwords do not match.', 'danger')
             return render_template('register.html')
 
-        existing_user = Teacher.query.filter_by(username=username).first()
-        if existing_user:
+        if Teacher.query.filter_by(username=username).first():
             flash('Username already exists. Please choose another.', 'danger')
             return render_template('register.html')
 
-        existing_email = Teacher.query.filter_by(email=email).first()
-        if existing_email:
+        if Teacher.query.filter_by(email=email).first():
             flash('Email already registered. Please use another.', 'danger')
             return render_template('register.html')
 
@@ -95,24 +127,12 @@ def register():
 def teacher():
     if 'teacher_id' not in session:
         return redirect(url_for('login'))
-    teacher = Teacher.query.get(session['teacher_id'])
-    students_list = []
-    json_dir = os.path.join('data', 'teachers')
-    if not os.path.exists(json_dir):
-        os.makedirs(json_dir)
-    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
-    if os.path.exists(json_path):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            students_list = json.load(f)
-
-    # Load results for this teacher from JSON, not DB
-    results_list = []
-    results_dir = os.path.join('data', 'results')
-    results_path = os.path.join(results_dir, f'{teacher.username}.json')
-    if os.path.exists(results_path):
-        with open(results_path, 'r', encoding='utf-8') as f:
-            results_list = json.load(f)
-
+    teacher = get_teacher()
+    # Get students from DB
+    students_list = Student.query.filter_by(teacher_id=teacher.id).all()
+    # Get results from DB
+    results_list = Result.query.join(Student, Result.student_id == Student.id)\
+        .filter(Student.teacher_id == teacher.id).all()
     return render_template(
         'teacher.html',
         teacher_name=teacher.name,
@@ -120,13 +140,11 @@ def teacher():
         results_list=results_list
     )
 
-from flask import flash
-
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if 'teacher_id' not in session:
         return redirect(url_for('login'))
-    teacher = Teacher.query.get(session['teacher_id'])
+    teacher = get_teacher()
 
     if request.method == 'POST':
         name = request.form.get('name', teacher.name)
@@ -134,15 +152,10 @@ def profile():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
-        # Actualiza solo si el nombre cambió
         if name and name != teacher.name:
             teacher.name = name
-
-        # Actualiza solo si la escuela cambió
         if school and school != teacher.school:
             teacher.school = school
-
-        # Actualiza solo si se ingresó un nuevo password
         if password:
             if password != confirm_password:
                 return render_template('profile.html', teacher=teacher)
@@ -161,23 +174,36 @@ def upload_students():
 
     file = request.files.get('file')
     if not file or not file.filename.endswith('.csv'):
+        flash('Invalid file. Please upload a CSV file.', 'danger')
         return redirect(url_for('teacher'))
 
     csvfile = file.stream.read().decode('utf-8').splitlines()
     reader = csv.DictReader(csvfile)
-    added = 0
-    students_json = []
+    passwords_to_deliver = []
+    errors = []
 
-    for row in reader:
-        exp = str(row['exp'])
-        name = row['name']
-        group = row['group']
+    for idx, row in enumerate(reader, start=2):  # start=2 for line number (header is line 1)
+        exp = str(row.get('exp', '')).strip()
+        name = row.get('name', '').strip()
+        group = row.get('group', '').strip()
         username = exp
-        password_plain = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        password_hash = generate_password_hash(password_plain)
 
-        if Student.query.filter_by(username=username).first():
+        # Validation
+        if not name:
+            errors.append(f"Row {idx}: Name is required.")
             continue
+        if not group:
+            errors.append(f"Row {idx}: Group is required.")
+            continue
+        if not username:
+            errors.append(f"Row {idx}: Username is required.")
+            continue
+        if Student.query.filter_by(username=username).first():
+            errors.append(f"Row {idx}: Username '{username}' already exists. Skipped.")
+            continue
+
+        password_plain = generate_random_password(6)
+        password_hash = generate_password_hash(password_plain)
 
         student = Student(
             name=name,
@@ -187,52 +213,41 @@ def upload_students():
             teacher_id=session['teacher_id']
         )
         db.session.add(student)
-        db.session.flush()  # Get the student.id before commit
+        db.session.flush()
 
-        students_json.append({
+        passwords_to_deliver.append({
             "ID": student.id,
             "Name": name,
             "Group": group,
             "Username": username,
             "Password": password_plain
         })
-        added += 1
 
     db.session.commit()
+    session['passwords_to_deliver'] = passwords_to_deliver
 
-    # Save JSON file
-    if not os.path.exists('json'):
-        os.makedirs('json')
-    teacher = Teacher.query.get(session['teacher_id'])
-    json_path = os.path.join('json', f'students_{teacher.username}.json')
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(students_json, f, ensure_ascii=False, indent=4)
+    if errors:
+        flash('Some students were not added:\n' + '\n'.join(errors), 'warning')
 
-    return redirect(url_for('teacher'))
+    return redirect(url_for('download_passwords_csv'))
 
 @app.route('/download_students_csv')
 def download_students_csv():
     if 'teacher_id' not in session:
         return redirect(url_for('login'))
-    teacher = Teacher.query.get(session['teacher_id'])
-    json_dir = os.path.join('data', 'teachers')
-    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
-    if not os.path.exists(json_path):
-        return redirect(url_for('teacher'))
-
-    with open(json_path, 'r', encoding='utf-8') as f:
-        students_list = json.load(f)
+    teacher = get_teacher()
+    # Get all students for this teacher from the database
+    students_list = Student.query.filter_by(teacher_id=teacher.id).all()
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['ID', 'Name', 'Group', 'Username', 'Password'])
+    writer.writerow(['ID', 'Name', 'Group', 'Username'])
     for student in students_list:
         writer.writerow([
-            student.get('ID', ''),
-            student.get('Name', ''),
-            student.get('Group', ''),
-            student.get('Username', ''),
-            student.get('Password', '')
+            student.id,
+            student.name,
+            student.group,
+            student.username
         ])
     output.seek(0)
     filename = f"students_list_{teacher.username}.csv"
@@ -251,7 +266,7 @@ def create_quiz():
             return jsonify(success=False, message=msg)
         return redirect(url_for('login'))
 
-    teacher = Teacher.query.get(session['teacher_id'])
+    teacher = get_teacher()
     categories = {
         'math': 'Mathematics',
         'physics': 'Physics',
@@ -267,7 +282,8 @@ def create_quiz():
         if num_questions and int(num_questions) > 0:
             level_folder = level.lower().replace(' ', '_')
             file_key = 'computerscience' if key == 'cs' else key
-            exam_path = os.path.join('data', 'exams_precreated', level_folder, f'{file_key}.json')
+            # Updated path for precreated exams
+            exam_path = os.path.join('data', 'exams', 'precreated', level_folder, f'{file_key}.json')
             if os.path.exists(exam_path):
                 with open(exam_path, 'r', encoding='utf-8') as f:
                     questions = json.load(f)
@@ -280,9 +296,9 @@ def create_quiz():
             return jsonify(success=False, message=msg)
         return redirect(url_for('teacher'))
 
-    generated_dir = os.path.join('data', 'exams_generated')
-    if not os.path.exists(generated_dir):
-        os.makedirs(generated_dir)
+    # Updated path for generated exams
+    generated_dir = os.path.join('data', 'exams', 'generated')
+    os.makedirs(generated_dir, exist_ok=True)
     quiz_filename = f'quiz_{teacher.username}.json'
     quiz_path = os.path.join(generated_dir, quiz_filename)
     with open(quiz_path, 'w', encoding='utf-8') as f:
@@ -297,8 +313,9 @@ def create_quiz():
 def exam_teacher():
     if 'teacher_id' not in session:
         return redirect(url_for('login'))
-    teacher = Teacher.query.get(session['teacher_id'])
-    quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
+    teacher = get_teacher()
+    # Updated path for generated exams
+    quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
     quiz_questions = []
     if os.path.exists(quiz_path):
         with open(quiz_path, 'r', encoding='utf-8') as f:
@@ -309,7 +326,7 @@ def exam_teacher():
 def student():
     if 'student_id' not in session:
         return redirect(url_for('login'))
-    student = Student.query.get(session['student_id'])
+    student = get_student()
     teacher = Teacher.query.get(student.teacher_id) if student else None
     return render_template(
         'student.html',
@@ -321,25 +338,24 @@ def student():
 def quiz():
     if 'student_id' not in session:
         return redirect(url_for('login'))
-    student = Student.query.get(session['student_id'])
+    student = get_student()
     teacher = Teacher.query.get(student.teacher_id) if student else None
     quiz_questions = []
     already_done = False
     student_result = None
 
     if teacher:
-        results_path = os.path.join('data', 'results', f'{teacher.username}.json')
-        if os.path.exists(results_path):
-            with open(results_path, 'r', encoding='utf-8') as f:
-                results_data = json.load(f)
-            for result in results_data:
-                if result.get("student_id") == student.id:
-                    already_done = True
-                    student_result = result
-                    break
+        results_path = get_json_path('data/results', f'{teacher.username}.json')
+        results_data = read_json(results_path)
+        for result in results_data:
+            if result.get("student_id") == student.id:
+                already_done = True
+                student_result = result
+                break
 
         if not already_done:
-            quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
+            # Updated path for generated exams
+            quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
             if os.path.exists(quiz_path):
                 with open(quiz_path, 'r', encoding='utf-8') as f:
                     quiz_questions = json.load(f)
@@ -358,44 +374,32 @@ def submit_quiz():
     if 'student_id' not in session:
         return jsonify(success=False, message="Session expired. Please log in again.")
 
-    student = Student.query.get(session['student_id'])
+    student = get_student()
     teacher = Teacher.query.get(student.teacher_id) if student else None
     if not teacher:
         return jsonify(success=False, message="Teacher not found.")
 
-    # Ruta del JSON de resultados del maestro
-    results_dir = os.path.join('data', 'results')
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-    results_filename = f"{teacher.username}.json"
-    results_path = os.path.join(results_dir, results_filename)
+    results_path = get_json_path('data/results', f'{teacher.username}.json')
+    results_data = read_json(results_path)
 
-    # Cargar resultados existentes del maestro
-    results_data = []
-    if os.path.exists(results_path):
-        with open(results_path, 'r', encoding='utf-8') as f:
-            results_data = json.load(f)
-
-    # Verificar si el estudiante ya realizó el examen
+    # Check if student already took the quiz
     for result in results_data:
         if result.get("student_id") == student.id:
             return jsonify(success=False, message="You have already completed this quiz. You cannot retake it.")
 
-    # Cargar el quiz del maestro
-    quiz_path = os.path.join('data', 'exams_generated', f'quiz_{teacher.username}.json')
+    # Updated path for generated exams
+    quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
     if not os.path.exists(quiz_path):
         return jsonify(success=False, message="Quiz not found.")
 
     with open(quiz_path, 'r', encoding='utf-8') as f:
         quiz_questions = json.load(f)
 
-    # Procesar respuestas
     answers = []
     for i, q in enumerate(quiz_questions):
         user_answer = request.form.get(f'q{i}')
         answers.append(user_answer)
 
-    # Calcular resultados por materia
     categories = {
         'Mathematics': 0,
         'Physics': 0,
@@ -421,7 +425,6 @@ def submit_quiz():
                 categories[cat] += 1
                 total_correct += 1
 
-    # Formato "aciertos/total"
     result_data = {
         "id": student.id,
         "student_id": student.id,
@@ -435,13 +438,9 @@ def submit_quiz():
         "total": f"{total_correct}/{len(quiz_questions)}"
     }
 
-    # Agregar el resultado al JSON del maestro
     results_data.append(result_data)
-    with open(results_path, 'w', encoding='utf-8') as f:
-        json.dump(results_data, f, ensure_ascii=False, indent=4)
+    write_json(results_path, results_data)
 
-    # Guardar en la base de datos (tabla Result)
-    from models import Result
     new_result = Result(
         student_id=student.id,
         name=student.name,
@@ -456,7 +455,6 @@ def submit_quiz():
     db.session.add(new_result)
     db.session.commit()
 
-    # Crear resumen para mostrar al estudiante
     summary = f"""
     <b>Results Summary:</b><br>
     Mathematics: {result_data['mathematics']}<br>
@@ -473,29 +471,25 @@ def submit_quiz():
 def download_results_csv():
     if 'teacher_id' not in session:
         return redirect(url_for('login'))
-    teacher = Teacher.query.get(session['teacher_id'])
-    results_dir = os.path.join('data', 'results')
-    results_path = os.path.join(results_dir, f'{teacher.username}.json')
-    if not os.path.exists(results_path):
-        return redirect(url_for('teacher'))
-
-    with open(results_path, 'r', encoding='utf-8') as f:
-        results_list = json.load(f)
+    teacher = get_teacher()
+    # Get all results for students of this teacher
+    results_list = Result.query.join(Student, Result.student_id == Student.id)\
+        .filter(Student.teacher_id == teacher.id).all()
 
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(['ID', 'Name', 'Group', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Total'])
     for result in results_list:
         writer.writerow([
-            result.get('id', ''),
-            result.get('name', ''),
-            result.get('group', ''),
-            result.get('mathematics', ''),
-            result.get('physics', ''),
-            result.get('chemistry', ''),
-            result.get('biology', ''),
-            result.get('computer_science', ''),
-            result.get('total', '')
+            result.student_id,
+            result.name,
+            result.group,
+            result.mathematics,
+            result.physics,
+            result.chemistry,
+            result.biology,
+            result.computer_science,
+            result.total
         ])
     output.seek(0)
     filename = f"results_{teacher.username}.csv"
@@ -512,40 +506,22 @@ def edit_student():
         return jsonify(success=False, message="Not authorized")
     data = request.get_json()
     student_id = int(data.get('id'))
-    new_name = data.get('name')
-    new_group = data.get('group')
+    new_name = data.get('name', '').strip()
+    new_group = data.get('group', '').strip()
 
-    teacher = Teacher.query.get(session['teacher_id'])
-    json_dir = os.path.join('data', 'teachers')
-    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
-    if not os.path.exists(json_path):
-        return jsonify(success=False, message="Student list not found")
+    # Validation
+    if not new_name:
+        return jsonify(success=False, message="Name cannot be empty.")
+    if not new_group:
+        return jsonify(success=False, message="Group cannot be empty.")
 
-    with open(json_path, 'r', encoding='utf-8') as f:
-        students_list = json.load(f)
-
-    updated = False
-    for student in students_list:
-        if int(student['ID']) == student_id:
-            student['Name'] = new_name
-            student['Group'] = new_group
-            updated = True
-            break
-
-    if not updated:
-        return jsonify(success=False, message="Student not found")
-
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(students_list, f, ensure_ascii=False, indent=4)
-
-    # Actualiza también en la base de datos
     student_db = Student.query.get(student_id)
     if student_db:
         student_db.name = new_name
         student_db.group = new_group
         db.session.commit()
-
-    return jsonify(success=True, name=new_name, group=new_group)
+        return jsonify(success=True, name=new_name, group=new_group)
+    return jsonify(success=False, message="Student not found")
 
 @app.route('/delete_student', methods=['POST'])
 def delete_student():
@@ -554,29 +530,17 @@ def delete_student():
     data = request.get_json()
     student_id = int(data.get('id'))
 
-    teacher = Teacher.query.get(session['teacher_id'])
-    json_dir = os.path.join('data', 'teachers')
-    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
-    if not os.path.exists(json_path):
-        return jsonify(success=False, message="Student list not found")
+    # Check if the student has any results
+    has_result = Result.query.filter_by(student_id=student_id).first()
+    if has_result:
+        return jsonify(success=False, message="Cannot delete student who has already taken the exam.")
 
-    with open(json_path, 'r', encoding='utf-8') as f:
-        students_list = json.load(f)
-
-    new_students_list = [s for s in students_list if int(s['ID']) != student_id]
-    if len(new_students_list) == len(students_list):
-        return jsonify(success=False, message="Student not found")
-
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(new_students_list, f, ensure_ascii=False, indent=4)
-
-    # Elimina también de la base de datos
     student_db = Student.query.get(student_id)
     if student_db:
         db.session.delete(student_db)
         db.session.commit()
-
-    return jsonify(success=True)
+        return jsonify(success=True)
+    return jsonify(success=False, message="Student not found")
 
 @app.route('/reset_student_password', methods=['POST'])
 def reset_student_password():
@@ -585,41 +549,16 @@ def reset_student_password():
     data = request.get_json()
     student_id = int(data.get('id'))
 
-    # Generar nuevo password aleatorio
-    import random, string
-    new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    from werkzeug.security import generate_password_hash
+    new_password = generate_random_password(8)
     new_password_hash = generate_password_hash(new_password)
 
-    teacher = Teacher.query.get(session['teacher_id'])
-    json_dir = os.path.join('data', 'teachers')
-    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
-    if not os.path.exists(json_path):
-        return jsonify(success=False, message="Student list not found")
-
-    with open(json_path, 'r', encoding='utf-8') as f:
-        students_list = json.load(f)
-
-    updated = False
-    for student in students_list:
-        if int(student['ID']) == student_id:
-            student['Password'] = new_password
-            updated = True
-            break
-
-    if not updated:
-        return jsonify(success=False, message="Student not found")
-
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(students_list, f, ensure_ascii=False, indent=4)
-
-    # Actualiza también en la base de datos
     student_db = Student.query.get(student_id)
     if student_db:
         student_db.password = new_password_hash
         db.session.commit()
-
-    return jsonify(success=True, password=new_password)
+        # Return the new password so it can be shown to the teacher
+        return jsonify(success=True, password=new_password)
+    return jsonify(success=False, message="Student not found")
 
 @app.route('/reset_student_result', methods=['POST'])
 def reset_student_result():
@@ -628,27 +567,39 @@ def reset_student_result():
     data = request.get_json()
     student_id = int(data.get('id'))
 
-    teacher = Teacher.query.get(session['teacher_id'])
-    results_dir = os.path.join('data', 'results')
-    results_path = os.path.join(results_dir, f'{teacher.username}.json')
-    if not os.path.exists(results_path):
-        return jsonify(success=False, message="Results file not found")
-
-    # Elimina del JSON
-    with open(results_path, 'r', encoding='utf-8') as f:
-        results_list = json.load(f)
-    new_results_list = [r for r in results_list if int(r.get('student_id', 0)) != student_id]
-    with open(results_path, 'w', encoding='utf-8') as f:
-        json.dump(new_results_list, f, ensure_ascii=False, indent=4)
-
-    # Elimina de la base de datos
-    from models import Result
     result_db = Result.query.filter_by(student_id=student_id).first()
     if result_db:
         db.session.delete(result_db)
         db.session.commit()
+        return jsonify(success=True)
+    return jsonify(success=False, message="Result not found")
 
-    return jsonify(success=True)
+@app.route('/download_passwords_csv')
+def download_passwords_csv():
+    passwords_to_deliver = session.pop('passwords_to_deliver', None)
+    if not passwords_to_deliver:
+        flash('No passwords to deliver. Please upload students first.', 'warning')
+        return redirect(url_for('teacher'))
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Name', 'Group', 'Username', 'Password'])
+    for student in passwords_to_deliver:
+        writer.writerow([
+            student["ID"],
+            student["Name"],
+            student["Group"],
+            student["Username"],
+            student["Password"]
+        ])
+    output.seek(0)
+    filename = "students_passwords.csv"
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=filename
+    )
 
 if __name__ == '__main__':
     with app.app_context():

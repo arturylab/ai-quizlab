@@ -9,17 +9,16 @@ AI QuizLab is an educational web application designed to help students and teach
 - 🔐 **Teacher and Student Login:** Secure authentication for both roles with session timeouts for added security.
 - 🧑‍🏫 **Teacher Dashboard:** 
   - 📤 Upload student lists via CSV files.
-  - 📥 Download student credentials as CSV.
+  - 📥 Download student credentials as CSV (passwords are only available immediately after upload or password reset).
   - 📝 Create and manage quizzes by subject and level, with random question selection for each exam.
-  - 👁️ View student lists generated from uploaded CSVs.
+  - 👁️ View student lists and statistics directly from the database.
   - ⚙️ Edit your profile (name, school, and password) from a dedicated profile page.
 - 👨‍🎓 **Student Dashboard:** 
   - 🧪 Participate in science quizzes.
   - ⏰ Session time limits for secure access.
   - 📊 Track quiz progress and results.
 - 📂 **CSV Integration:** Easily import and export student data.
-- 🔒 **Password Security:** All passwords are securely hashed.
-- 🗂️ **JSON Storage:** Student lists are stored per teacher in the `/json` folder for easy access and download.
+- 🔒 **Password Security:** All passwords are securely hashed. Plain passwords are only shown once after creation or reset.
 - 💬 **User Feedback:** Flash messages provide clear feedback for login, registration, profile updates, and errors.
 
 ---
@@ -78,7 +77,7 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ## 📝 Usage
 
-- 🧑‍🏫 **Teachers:** Register via the `/register` page, then log in to upload student lists, manage quizzes, and edit your profile. Uploaded student lists are stored as JSON files in the `/json` folder and can be downloaded as CSV.
+- 🧑‍🏫 **Teachers:** Register via the `/register` page, then log in to upload student lists, manage quizzes, and edit your profile. Uploaded student lists are stored in the database and can be downloaded as CSV. Passwords are only available for download immediately after upload or reset.
 - 👨‍🎓 **Students:** Log in with credentials provided by their teacher to access quizzes. Session timeouts ensure secure access.
 - ⚙️ **Profile Editing:** Teachers can update their name, school, and password from the profile page.
 - 📝 **Randomized Exams:** Each quiz is generated with a random selection of questions per subject and level.
@@ -92,9 +91,8 @@ AI QuizLab is an educational web application designed to help students and teach
 - `config.py` - Configuration settings (uses `.env` for secrets and DB URI).
 - `templates/` - HTML templates (Jinja2).
 - `static/` - Static files (CSS, JS).
-- `json/` - Generated student lists per teacher (e.g., `students_frank.json`).
 - `.env` - Environment variables (not tracked by git).
-- `.gitignore` - Ignores `venv/`, `__pycache__/`, `.env`, `.json`, `.csv`, and credentials files.
+- `.gitignore` - Ignores `venv/`, `__pycache__/`, `.env`, `.csv`, and credentials files.
 - `README.md` - Project documentation.
 
 ---

@@ -46,13 +46,14 @@
                 <tbody>
                     {% if students_list %}
                         {% for student in students_list %}
-                        <tr data-student-id="{{ student['ID'] }}">
-                            <td>{{ student["ID"] }}</td>
-                            <td class="editable-name">{{ student["Name"] }}</td>
-                            <td class="editable-group">{{ student["Group"] }}</td>
-                            <td>{{ student["Username"] }}</td>
+                        <tr data-student-id="{{ student.id }}">
+                            <td>{{ student.id }}</td>
+                            <td class="editable-name">{{ student.name }}</td>
+                            <td class="editable-group">{{ student.group }}</td>
+                            <td>{{ student.username }}</td>
                             <td>
-                                {{ student["Password"] }}
+                                <!-- Aquí puedes mostrar el password temporal si lo generas, o dejarlo vacío/oculto -->
+                                ********
                                 <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
                             </td>
                             <td>
@@ -144,15 +145,15 @@
                     {% if results_list %}
                         {% for result in results_list %}
                         <tr>
-                            <td>{{ result["id"] }}</td>
-                            <td>{{ result["name"] }}</td>
-                            <td>{{ result["group"] }}</td>
-                            <td>{{ result["mathematics"] }}</td>
-                            <td>{{ result["physics"] }}</td>
-                            <td>{{ result["chemistry"] }}</td>
-                            <td>{{ result["biology"] }}</td>
-                            <td>{{ result["computer_science"] }}</td>
-                            <td>{{ result["total"] }}</td>
+                            <td>{{ result.student_id }}</td>
+                            <td>{{ result.name }}</td>
+                            <td>{{ result.group }}</td>
+                            <td>{{ result.mathematics }}</td>
+                            <td>{{ result.physics }}</td>
+                            <td>{{ result.chemistry }}</td>
+                            <td>{{ result.biology }}</td>
+                            <td>{{ result.computer_science }}</td>
+                            <td>{{ result.total }}</td>
                             <td>
                                 <span class="retry-quiz" style="cursor:pointer;" title="Allow retry">↩️</span>
                             </td>

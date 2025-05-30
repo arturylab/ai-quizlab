@@ -1,10 +1,5 @@
 **/__pycache__/
 venv/
-data/exams_generated/*json
-data/results/*json
-data/teachers/*json
+data/exams/generated/*json
 
 *.env
-*.csv
-
-teacher_credentials.txt
