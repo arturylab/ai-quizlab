@@ -6,18 +6,21 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ## ✨ Features
 
-- 🔐 **Teacher and Student Login:** Secure authentication for both roles.
+- 🔐 **Teacher and Student Login:** Secure authentication for both roles with session timeouts for added security.
 - 🧑‍🏫 **Teacher Dashboard:** 
   - 📤 Upload student lists via CSV files.
   - 📥 Download student credentials as CSV.
-  - 📝 Create and manage quizzes by subject and level.
+  - 📝 Create and manage quizzes by subject and level, with random question selection for each exam.
   - 👁️ View student lists generated from uploaded CSVs.
+  - ⚙️ Edit your profile (name, school, and password) from a dedicated profile page.
 - 👨‍🎓 **Student Dashboard:** 
   - 🧪 Participate in science quizzes.
+  - ⏰ Session time limits for secure access.
   - 📊 Track quiz progress and results.
 - 📂 **CSV Integration:** Easily import and export student data.
 - 🔒 **Password Security:** All passwords are securely hashed.
 - 🗂️ **JSON Storage:** Student lists are stored per teacher in the `/json` folder for easy access and download.
+- 💬 **User Feedback:** Flash messages provide clear feedback for login, registration, profile updates, and errors.
 
 ---
 
@@ -28,7 +31,7 @@ AI QuizLab is an educational web application designed to help students and teach
 - 🗄️ Flask-SQLAlchemy
 - 🐘 PostgreSQL
 - 🖥️ HTML5, CSS3
-- 💻 JavaScript (optional for frontend enhancements)
+- 💻 JavaScript (for frontend enhancements and profile editing)
 
 ---
 
@@ -75,8 +78,10 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ## 📝 Usage
 
-- 🧑‍🏫 **Teachers:** Register via the `/register` page, then log in to upload student lists and manage quizzes. Uploaded student lists are stored as JSON files in the `/json` folder and can be downloaded as CSV.
-- 👨‍🎓 **Students:** Log in with credentials provided by their teacher to access quizzes.
+- 🧑‍🏫 **Teachers:** Register via the `/register` page, then log in to upload student lists, manage quizzes, and edit your profile. Uploaded student lists are stored as JSON files in the `/json` folder and can be downloaded as CSV.
+- 👨‍🎓 **Students:** Log in with credentials provided by their teacher to access quizzes. Session timeouts ensure secure access.
+- ⚙️ **Profile Editing:** Teachers can update their name, school, and password from the profile page.
+- 📝 **Randomized Exams:** Each quiz is generated with a random selection of questions per subject and level.
 
 ---
 

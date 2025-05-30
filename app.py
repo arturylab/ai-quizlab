@@ -506,6 +506,150 @@ def download_results_csv():
         download_name=filename
     )
 
+@app.route('/edit_student', methods=['POST'])
+def edit_student():
+    if 'teacher_id' not in session:
+        return jsonify(success=False, message="Not authorized")
+    data = request.get_json()
+    student_id = int(data.get('id'))
+    new_name = data.get('name')
+    new_group = data.get('group')
+
+    teacher = Teacher.query.get(session['teacher_id'])
+    json_dir = os.path.join('data', 'teachers')
+    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
+    if not os.path.exists(json_path):
+        return jsonify(success=False, message="Student list not found")
+
+    with open(json_path, 'r', encoding='utf-8') as f:
+        students_list = json.load(f)
+
+    updated = False
+    for student in students_list:
+        if int(student['ID']) == student_id:
+            student['Name'] = new_name
+            student['Group'] = new_group
+            updated = True
+            break
+
+    if not updated:
+        return jsonify(success=False, message="Student not found")
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(students_list, f, ensure_ascii=False, indent=4)
+
+    # Actualiza también en la base de datos
+    student_db = Student.query.get(student_id)
+    if student_db:
+        student_db.name = new_name
+        student_db.group = new_group
+        db.session.commit()
+
+    return jsonify(success=True, name=new_name, group=new_group)
+
+@app.route('/delete_student', methods=['POST'])
+def delete_student():
+    if 'teacher_id' not in session:
+        return jsonify(success=False, message="Not authorized")
+    data = request.get_json()
+    student_id = int(data.get('id'))
+
+    teacher = Teacher.query.get(session['teacher_id'])
+    json_dir = os.path.join('data', 'teachers')
+    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
+    if not os.path.exists(json_path):
+        return jsonify(success=False, message="Student list not found")
+
+    with open(json_path, 'r', encoding='utf-8') as f:
+        students_list = json.load(f)
+
+    new_students_list = [s for s in students_list if int(s['ID']) != student_id]
+    if len(new_students_list) == len(students_list):
+        return jsonify(success=False, message="Student not found")
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(new_students_list, f, ensure_ascii=False, indent=4)
+
+    # Elimina también de la base de datos
+    student_db = Student.query.get(student_id)
+    if student_db:
+        db.session.delete(student_db)
+        db.session.commit()
+
+    return jsonify(success=True)
+
+@app.route('/reset_student_password', methods=['POST'])
+def reset_student_password():
+    if 'teacher_id' not in session:
+        return jsonify(success=False, message="Not authorized")
+    data = request.get_json()
+    student_id = int(data.get('id'))
+
+    # Generar nuevo password aleatorio
+    import random, string
+    new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    from werkzeug.security import generate_password_hash
+    new_password_hash = generate_password_hash(new_password)
+
+    teacher = Teacher.query.get(session['teacher_id'])
+    json_dir = os.path.join('data', 'teachers')
+    json_path = os.path.join(json_dir, f'students_{teacher.username}.json')
+    if not os.path.exists(json_path):
+        return jsonify(success=False, message="Student list not found")
+
+    with open(json_path, 'r', encoding='utf-8') as f:
+        students_list = json.load(f)
+
+    updated = False
+    for student in students_list:
+        if int(student['ID']) == student_id:
+            student['Password'] = new_password
+            updated = True
+            break
+
+    if not updated:
+        return jsonify(success=False, message="Student not found")
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(students_list, f, ensure_ascii=False, indent=4)
+
+    # Actualiza también en la base de datos
+    student_db = Student.query.get(student_id)
+    if student_db:
+        student_db.password = new_password_hash
+        db.session.commit()
+
+    return jsonify(success=True, password=new_password)
+
+@app.route('/reset_student_result', methods=['POST'])
+def reset_student_result():
+    if 'teacher_id' not in session:
+        return jsonify(success=False, message="Not authorized")
+    data = request.get_json()
+    student_id = int(data.get('id'))
+
+    teacher = Teacher.query.get(session['teacher_id'])
+    results_dir = os.path.join('data', 'results')
+    results_path = os.path.join(results_dir, f'{teacher.username}.json')
+    if not os.path.exists(results_path):
+        return jsonify(success=False, message="Results file not found")
+
+    # Elimina del JSON
+    with open(results_path, 'r', encoding='utf-8') as f:
+        results_list = json.load(f)
+    new_results_list = [r for r in results_list if int(r.get('student_id', 0)) != student_id]
+    with open(results_path, 'w', encoding='utf-8') as f:
+        json.dump(new_results_list, f, ensure_ascii=False, indent=4)
+
+    # Elimina de la base de datos
+    from models import Result
+    result_db = Result.query.filter_by(student_id=student_id).first()
+    if result_db:
+        db.session.delete(result_db)
+        db.session.commit()
+
+    return jsonify(success=True)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

@@ -40,22 +40,30 @@
                         <th>Group</th>
                         <th>Username</th>
                         <th>Password</th>
+                        <th>Edit</th> <!-- Nueva columna -->
                     </tr>
                 </thead>
                 <tbody>
                     {% if students_list %}
                         {% for student in students_list %}
-                        <tr>
+                        <tr data-student-id="{{ student['ID'] }}">
                             <td>{{ student["ID"] }}</td>
-                            <td>{{ student["Name"] }}</td>
-                            <td>{{ student["Group"] }}</td>
+                            <td class="editable-name">{{ student["Name"] }}</td>
+                            <td class="editable-group">{{ student["Group"] }}</td>
                             <td>{{ student["Username"] }}</td>
-                            <td>{{ student["Password"] }}</td>
+                            <td>
+                                {{ student["Password"] }}
+                                <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
+                            </td>
+                            <td>
+                                <span class="edit-student" style="cursor:pointer;" title="Edit">✏️</span>
+                                <span class="delete-student" style="cursor:pointer; margin-left:8px;" title="Delete">❌</span>
+                            </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="9" style="text-align:center;">No students yet.</td>
+                            <td colspan="6" style="text-align:center;">No students yet.</td>
                         </tr>
                     {% endif %}
                 </tbody>
@@ -129,6 +137,7 @@
                         <th>Biology</th>
                         <th>Computer Science</th>
                         <th>Total</th>
+                        <th>Retry</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -144,11 +153,14 @@
                             <td>{{ result["biology"] }}</td>
                             <td>{{ result["computer_science"] }}</td>
                             <td>{{ result["total"] }}</td>
+                            <td>
+                                <span class="retry-quiz" style="cursor:pointer;" title="Allow retry">↩️</span>
+                            </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="9" style="text-align:center;">No results yet.</td>
+                            <td colspan="10" style="text-align:center;">No results yet.</td>
                         </tr>
                     {% endif %}
                 </tbody>

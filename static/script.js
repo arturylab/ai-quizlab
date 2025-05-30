@@ -147,4 +147,104 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
+
+    // Editar estudiante
+    document.querySelectorAll('.edit-student').forEach(function(btn) {
+        btn.onclick = function() {
+            const row = btn.closest('tr');
+            const nameCell = row.querySelector('.editable-name');
+            const groupCell = row.querySelector('.editable-group');
+            if (!nameCell.querySelector('input')) {
+                const name = nameCell.textContent;
+                const group = groupCell.textContent;
+                nameCell.innerHTML = `<input type="text" value="${name}" style="width:90%;">`;
+                groupCell.innerHTML = `<input type="text" value="${group}" style="width:90%;">`;
+                btn.innerHTML = '💾';
+                btn.title = 'Save';
+                btn.onclick = function() {
+                    fetch('/edit_student', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            id: row.dataset.studentId,
+                            name: nameCell.querySelector('input').value,
+                            group: groupCell.querySelector('input').value
+                        })
+                    }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            nameCell.textContent = data.name;
+                            groupCell.textContent = data.group;
+                            btn.innerHTML = '✏️';
+                            btn.title = 'Edit';
+                            btn.onclick = arguments.callee;
+                        } else {
+                            alert(data.message || 'Error updating student');
+                        }
+                    });
+                };
+            }
+        };
+    });
+
+    // Eliminar estudiante
+    document.querySelectorAll('.delete-student').forEach(function(btn) {
+        btn.onclick = function() {
+            if (confirm('Are you sure you want to delete this student?')) {
+                const row = btn.closest('tr');
+                fetch('/delete_student', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: row.dataset.studentId })
+                }).then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        row.remove();
+                    } else {
+                        alert(data.message || 'Error deleting student');
+                    }
+                });
+            }
+        };
+    });
+
+    document.querySelectorAll('.reset-password').forEach(function(btn) {
+        btn.onclick = function() {
+            const row = btn.closest('tr');
+            fetch('/reset_student_password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: row.dataset.studentId })
+            }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualiza el password en la celda
+                    btn.parentElement.childNodes[0].textContent = data.password;
+                } else {
+                    alert(data.message || 'Error resetting password');
+                }
+            });
+        };
+    });
+
+    document.querySelectorAll('.retry-quiz').forEach(function(btn) {
+        btn.onclick = function() {
+            const row = btn.closest('tr');
+            const studentId = row.querySelector('td').textContent;
+            if (confirm('Are you sure you want to allow this student to retake the quiz? This will delete their previous results.')) {
+                fetch('/reset_student_result', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: studentId })
+                }).then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        row.remove();
+                    } else {
+                        alert(data.message || 'Error resetting result');
+                    }
+                });
+            }
+        };
+    });
 });
