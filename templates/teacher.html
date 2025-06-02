@@ -12,7 +12,11 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-success">{{ message }}</div>
+                    {% if category == 'warning' %}
+                        <div class="alert alert-warning">{{ message|safe }}</div>
+                    {% else %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -20,19 +24,20 @@
         <!-- Section 1: File Uploader -->
         <section style="margin-top:32px; text-align: center;">
             <h3>Create Student List in CSV</h3>
-            <form action="/upload" method="post" enctype="multipart/form-data">
+            <form id="uploadStudentsForm" action="/upload" method="post" enctype="multipart/form-data">
                 <input type="file" name="file" required>
                 <br>
                 <div style="text-align: center; margin-top:10px;">
                     <button type="submit" style="width:auto; display:inline-block;">Upload List</button>
                 </div>
             </form>
+            <div id="uploadMessage" style="margin-top:12px; text-align: center;"></div>
         </section>
 
         <!-- Section 2: Student List -->
         <section>
             <h3>Student List 👥</h3>
-            <table style="width:100%; border-collapse: collapse;">
+            <table id="studentsTable" style="width:100%; border-collapse: collapse;">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -40,7 +45,7 @@
                         <th>Group</th>
                         <th>Username</th>
                         <th>Password</th>
-                        <th>Edit</th> <!-- Nueva columna -->
+                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,7 +57,6 @@
                             <td class="editable-group">{{ student.group }}</td>
                             <td>{{ student.username }}</td>
                             <td>
-                                <!-- Aquí puedes mostrar el password temporal si lo generas, o dejarlo vacío/oculto -->
                                 ********
                                 <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
                             </td>

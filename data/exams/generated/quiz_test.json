@@ -1,0 +1,67 @@
+[
+    {
+        "id": "MS-MATH-0025",
+        "question": "What is the decimal form of 1/4?",
+        "options": [
+            "0.2",
+            "0.25",
+            "0.3",
+            "0.4"
+        ],
+        "answer": "0.25",
+        "category": "Mathematics",
+        "level": "Middle School"
+    },
+    {
+        "id": "MS-PHYS-0006",
+        "question": "What do we use to measure temperature?",
+        "options": [
+            "Thermometer",
+            "Barometer",
+            "Ruler",
+            "Scale"
+        ],
+        "answer": "Thermometer",
+        "category": "Physics",
+        "level": "Middle School"
+    },
+    {
+        "id": "MS-CHEM-0008",
+        "question": "Which state of matter has no fixed shape but has a fixed volume?",
+        "options": [
+            "Solid",
+            "Liquid",
+            "Gas",
+            "Plasma"
+        ],
+        "answer": "Liquid",
+        "category": "Chemistry",
+        "level": "Middle School"
+    },
+    {
+        "id": "MS-BIOL-0003",
+        "question": "Which organ system is responsible for transporting blood?",
+        "options": [
+            "Nervous system",
+            "Respiratory system",
+            "Digestive system",
+            "Circulatory system"
+        ],
+        "answer": "Circulatory system",
+        "category": "Biology",
+        "level": "Middle School"
+    },
+    {
+        "id": "MS-CS-0024",
+        "question": "Which software helps you write code?",
+        "options": [
+            "Text editor",
+            "Web browser",
+            "Game",
+            "Spreadsheet"
+        ],
+        "answer": "Text editor",
+        "category": "Computer Science",
+        "level": "Middle School"
+    }
+]

@@ -25,6 +25,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Upload students AJAX (with automatic download)
+    const uploadForm = document.getElementById('uploadStudentsForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('uploadMessage');
+            
+            // Show loading message
+            messageDiv.innerHTML = '<div style="color:blue;">Uploading students...</div>';
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let message = `<div style="color:green;">${data.message}</div>`;
+                    
+                    // Show errors if any
+                    if (data.errors && data.errors.length > 0) {
+                        message += '<div style="color:orange; font-size:14px; margin-top:10px;"><strong>Errors:</strong><br>';
+                        data.errors.forEach(error => {
+                            message += `• ${error}<br>`;
+                        });
+                        message += '</div>';
+                    }
+                    
+                    messageDiv.innerHTML = message;
+                    
+                    // Automatically trigger CSV download if students were added
+                    if (data.students && data.students.length > 0) {
+                        // Add a brief delay to show the success message
+                        setTimeout(() => {
+                            window.open('/download_passwords_csv', '_blank');
+                        }, 1000);
+                    }
+                    
+                    // Refresh the students table
+                    if (data.students && data.students.length > 0) {
+                        updateStudentsTable(data.students);
+                    }
+                    // Clear the file input
+                    this.reset();
+                } else {
+                    messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                messageDiv.innerHTML = '<div style="color:red;">Error uploading file. Please try again.</div>';
+                console.error('Upload error:', error);
+            });
+        });
+    }
+
     // Create quiz AJAX
     const createQuizForm = document.getElementById('createQuizForm');
     if (createQuizForm) {
@@ -43,84 +100,126 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Edit student
-    document.querySelectorAll('.edit-student').forEach(function(btn) {
-        btn.onclick = function() {
-            const row = btn.closest('tr');
-            const nameCell = row.querySelector('.editable-name');
-            const groupCell = row.querySelector('.editable-group');
-            if (!nameCell.querySelector('input')) {
-                const name = nameCell.textContent;
-                const group = groupCell.textContent;
-                nameCell.innerHTML = `<input type="text" value="${name}" style="width:90%;">`;
-                groupCell.innerHTML = `<input type="text" value="${group}" style="width:90%;">`;
-                btn.innerHTML = '💾';
-                btn.title = 'Save';
-                btn.onclick = function() {
-                    fetch('/edit_student', {
+    // Function to update students table
+    function updateStudentsTable(students) {
+        const tbody = document.querySelector('#studentsTable tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students yet.</td></tr>';
+            return;
+        }
+        
+        students.forEach(student => {
+            const row = document.createElement('tr');
+            row.setAttribute('data-student-id', student.id);
+            row.innerHTML = `
+                <td>${student.id}</td>
+                <td class="editable-name">${student.name}</td>
+                <td class="editable-group">${student.group}</td>
+                <td>${student.username}</td>
+                <td>
+                    ********
+                    <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
+                </td>
+                <td>
+                    <span class="edit-student" style="cursor:pointer;" title="Edit">✏️</span>
+                    <span class="delete-student" style="cursor:pointer; margin-left:8px;" title="Delete">❌</span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Re-attach event listeners for new elements
+        attachStudentEventListeners();
+    }
+
+    // Function to attach event listeners to student management buttons
+    function attachStudentEventListeners() {
+        // Edit student
+        document.querySelectorAll('.edit-student').forEach(function(btn) {
+            btn.onclick = function() {
+                const row = btn.closest('tr');
+                const nameCell = row.querySelector('.editable-name');
+                const groupCell = row.querySelector('.editable-group');
+                if (!nameCell.querySelector('input')) {
+                    const name = nameCell.textContent;
+                    const group = groupCell.textContent;
+                    nameCell.innerHTML = `<input type="text" value="${name}" style="width:90%;">`;
+                    groupCell.innerHTML = `<input type="text" value="${group}" style="width:90%;">`;
+                    btn.innerHTML = '💾';
+                    btn.title = 'Save';
+                    btn.onclick = function() {
+                        fetch('/edit_student', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                id: row.dataset.studentId,
+                                name: nameCell.querySelector('input').value,
+                                group: groupCell.querySelector('input').value
+                            })
+                        }).then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                nameCell.textContent = data.name;
+                                groupCell.textContent = data.group;
+                                btn.innerHTML = '✏️';
+                                btn.title = 'Edit';
+                                btn.onclick = arguments.callee;
+                            } else {
+                                alert(data.message || 'Error updating student');
+                            }
+                        });
+                    };
+                }
+            };
+        });
+
+        // Delete student
+        document.querySelectorAll('.delete-student').forEach(function(btn) {
+            btn.onclick = function() {
+                if (confirm('Are you sure you want to delete this student?')) {
+                    const row = btn.closest('tr');
+                    fetch('/delete_student', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            id: row.dataset.studentId,
-                            name: nameCell.querySelector('input').value,
-                            group: groupCell.querySelector('input').value
-                        })
+                        body: JSON.stringify({ id: row.dataset.studentId })
                     }).then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            nameCell.textContent = data.name;
-                            groupCell.textContent = data.group;
-                            btn.innerHTML = '✏️';
-                            btn.title = 'Edit';
-                            btn.onclick = arguments.callee;
+                            row.remove();
                         } else {
-                            alert(data.message || 'Error updating student');
+                            alert(data.message || 'Error deleting student');
                         }
                     });
-                };
-            }
-        };
-    });
+                }
+            };
+        });
 
-    // Delete student
-    document.querySelectorAll('.delete-student').forEach(function(btn) {
-        btn.onclick = function() {
-            if (confirm('Are you sure you want to delete this student?')) {
+        // Reset student password
+        document.querySelectorAll('.reset-password').forEach(function(btn) {
+            btn.onclick = function() {
                 const row = btn.closest('tr');
-                fetch('/delete_student', {
+                fetch('/reset_student_password', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ id: row.dataset.studentId })
                 }).then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        row.remove();
+                        alert("New password for the student: " + data.password);
                     } else {
-                        alert(data.message || 'Error deleting student');
+                        alert(data.message || 'Error resetting password');
                     }
                 });
-            }
-        };
-    });
+            };
+        });
+    }
 
-    // Reset student password
-    document.querySelectorAll('.reset-password').forEach(function(btn) {
-        btn.onclick = function() {
-            const row = btn.closest('tr');
-            fetch('/reset_student_password', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id: row.dataset.studentId })
-            }).then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("New password for the student: " + data.password);
-                } else {
-                    alert(data.message || 'Error resetting password');
-                }
-            });
-        };
-    });
+    // Initial attachment of event listeners
+    attachStudentEventListeners();
 
     // Retry quiz
     document.querySelectorAll('.retry-quiz').forEach(function(btn) {

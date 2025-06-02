@@ -113,6 +113,11 @@ section {
     margin-top: 15px;
     color: green;
 }
+.alert-warning {
+    text-align: center;
+    margin-top: 15px;
+    color: #b26a00;
+}
 
 a.back-link {
     color: inherit;
