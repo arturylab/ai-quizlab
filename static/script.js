@@ -88,16 +88,115 @@ document.addEventListener('DOMContentLoaded', function() {
         createQuizForm.addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(this);
+            const messageDiv = document.getElementById('quizMessage');
+            
+            // Show loading message
+            messageDiv.innerHTML = '<div style="color:blue;">Creating quiz...</div>';
+            
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                document.getElementById('quizMessage').textContent = data.message;
+                if (data.success) {
+                    messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
+                } else {
+                    messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Create quiz error:', error);
+                messageDiv.innerHTML = '<div style="color:red;">Error creating quiz. Please try again.</div>';
             });
         });
+    }
+
+    // Profile editing functionality
+    const editNameBtn = document.getElementById('editNameBtn');
+    const editSchoolBtn = document.getElementById('editSchoolBtn');
+    const editPasswordBtn = document.getElementById('editPasswordBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', function() {
+            toggleFieldEdit('nameCell', 'name', 'Name');
+        });
+    }
+
+    if (editSchoolBtn) {
+        editSchoolBtn.addEventListener('click', function() {
+            toggleFieldEdit('schoolCell', 'school', 'School');
+        });
+    }
+
+    if (editPasswordBtn) {
+        editPasswordBtn.addEventListener('click', function() {
+            const passwordRow = document.getElementById('passwordRow');
+            const passwordEditRow = document.getElementById('passwordEditRow');
+            
+            if (passwordRow && passwordEditRow) {
+                passwordRow.style.display = 'none';
+                passwordEditRow.style.display = 'table-row';
+            }
+        });
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            // Reset all editing states
+            resetFieldEdit('nameCell');
+            resetFieldEdit('schoolCell');
+            
+            // Hide password edit row
+            const passwordRow = document.getElementById('passwordRow');
+            const passwordEditRow = document.getElementById('passwordEditRow');
+            const passwordInput = document.getElementById('passwordInput');
+            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+            
+            if (passwordRow && passwordEditRow) {
+                passwordRow.style.display = 'table-row';
+                passwordEditRow.style.display = 'none';
+            }
+            
+            if (passwordInput) passwordInput.value = '';
+            if (confirmPasswordInput) confirmPasswordInput.value = '';
+        });
+    }
+
+    function toggleFieldEdit(cellId, fieldName, placeholder) {
+        const cell = document.getElementById(cellId);
+        if (!cell) return;
+
+        if (cell.querySelector('input')) {
+            // Already editing, do nothing
+            return;
+        }
+
+        const originalValue = cell.getAttribute('data-original');
+        const currentValue = cell.textContent;
+        
+        cell.innerHTML = `<input type="text" name="${fieldName}" value="${currentValue}" placeholder="${placeholder}" style="width:100%; padding:4px;">`;
+        
+        const input = cell.querySelector('input');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }
+
+    function resetFieldEdit(cellId) {
+        const cell = document.getElementById(cellId);
+        if (!cell) return;
+
+        const originalValue = cell.getAttribute('data-original');
+        cell.textContent = originalValue;
     }
 
     // Function to update students table
@@ -151,7 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     groupCell.innerHTML = `<input type="text" value="${group}" style="width:90%;">`;
                     btn.innerHTML = '💾';
                     btn.title = 'Save';
-                    btn.onclick = function() {
+                    
+                    // Create new save function for this specific button
+                    const saveFunction = function() {
                         fetch('/edit_student', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
@@ -167,12 +268,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 groupCell.textContent = data.group;
                                 btn.innerHTML = '✏️';
                                 btn.title = 'Edit';
-                                btn.onclick = arguments.callee;
+                                // Re-attach the original edit functionality
+                                attachStudentEventListeners();
                             } else {
                                 alert(data.message || 'Error updating student');
                             }
                         });
                     };
+                    
+                    btn.onclick = saveFunction;
                 }
             };
         });
@@ -242,4 +346,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     });
+
+    // Delete quiz functionality
+    const deleteQuizBtn = document.getElementById('deleteQuizBtn');
+    if (deleteQuizBtn) {
+        deleteQuizBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+                const messageDiv = document.getElementById('deleteMessage');
+                
+                // Show loading message
+                messageDiv.innerHTML = '<div style="color:blue;">Deleting quiz...</div>';
+                
+                fetch('/delete_quiz', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
+                        // Redirect to teacher dashboard after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = '/teacher';
+                        }, 2000);
+                    } else {
+                        messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete quiz error:', error);
+                    messageDiv.innerHTML = '<div style="color:red;">Error deleting quiz. Please try again.</div>';
+                });
+            }
+        });
+    }
 });

@@ -550,7 +550,7 @@ def create_quiz():
 
     if not quiz_questions:
         msg = 'No questions selected. Please specify at least one category and number of questions.'
-        if request.is_json:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'warning')
         return redirect(url_for('teacher'))
@@ -565,14 +565,14 @@ def create_quiz():
         with open(quiz_path, 'w', encoding='utf-8') as f:
             json.dump(quiz_questions, f, ensure_ascii=False, indent=4)
 
-        msg = 'Quiz 📝 generated successfully! 😃'
-        if request.is_json:
+        msg = f'Quiz generated successfully! 📝 Total questions: {len(quiz_questions)} 😃'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=True, message=msg)
         flash(msg, 'success')
     except IOError as e:
         print(f"Error saving quiz: {e}")
         msg = 'Error generating quiz. Please try again.'
-        if request.is_json:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'danger')
 
@@ -589,6 +589,42 @@ def exam_teacher():
     return render_template('exam_teacher.html', 
                          teacher_name=teacher.name, 
                          quiz_questions=quiz_questions)
+
+@app.route('/delete_quiz', methods=['POST'])
+@teacher_required
+def delete_quiz():
+    """Delete the generated quiz for the current teacher."""
+    teacher = get_teacher()
+    
+    try:
+        # Delete the generated quiz file
+        quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
+        
+        if os.path.exists(quiz_path):
+            os.remove(quiz_path)
+            
+            # Handle AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=True, message="Quiz deleted successfully! 🗑️")
+            
+            flash('Quiz deleted successfully! 🗑️', 'success')
+        else:
+            # Handle AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=False, message="No quiz found to delete.")
+            
+            flash('No quiz found to delete.', 'warning')
+            
+    except Exception as e:
+        print(f"Error deleting quiz: {e}")
+        
+        # Handle AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message="Error deleting quiz. Please try again.")
+        
+        flash('Error deleting quiz. Please try again.', 'danger')
+
+    return redirect(url_for('teacher'))
 
 @app.route('/reset_student_result', methods=['POST'])
 @teacher_required

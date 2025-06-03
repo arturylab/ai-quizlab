@@ -8,6 +8,19 @@
 <body>
     <div class="teacher-container">
         <h2>Generated Quiz 📝 for {{ teacher_name }} 👩‍🏫👨‍🏫</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'warning' %}
+                        <div class="alert alert-warning">{{ message|safe }}</div>
+                    {% else %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
         {% if quiz_questions %}
             <ol>
                 {% for q in quiz_questions %}
@@ -34,11 +47,19 @@
                 No quiz found for this teacher.
             </div>
         {% endif %}
-        <div style="margin-top: 32px; text-align: center;">
+        
+        <div style="margin-top: 32px; text-align: center; display: flex; justify-content: center; gap: 16px;">
             <a href="{{ url_for('teacher') }}">
                 <button type="button" style="width:auto; display:inline-block;">Back to Dashboard</button>
             </a>
+            {% if quiz_questions %}
+                <button type="button" id="deleteQuizBtn" style="width:auto; display:inline-block; background:#e53935;">Delete Quiz</button>
+            {% endif %}
         </div>
+        
+        <div id="deleteMessage" style="margin-top:12px; text-align: center;"></div>
     </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
