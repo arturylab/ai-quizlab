@@ -12,15 +12,18 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
-
 def test_connection():
+    """Test production database connection."""
     try:
+        engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        print("Database connection successful.")
+        print("Production database connection successful.")
+        return True
     except Exception as e:
-        print(f"Database connection failed: {e}")
+        print(f"Production database connection failed: {e}")
+        return False
 
 if __name__ == "__main__":
+    print("Testing database connections...")
     test_connection()

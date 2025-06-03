@@ -46,11 +46,17 @@ def student_required(f):
 
 def get_teacher():
     """Return the current logged-in teacher object."""
-    return Teacher.query.get(session.get('teacher_id'))
+    teacher_id = session.get('teacher_id')
+    if teacher_id:
+        return db.session.get(Teacher, teacher_id)
+    return None
 
 def get_student():
     """Return the current logged-in student object."""
-    return Student.query.get(session.get('student_id'))
+    student_id = session.get('student_id')
+    if student_id:
+        return db.session.get(Student, student_id)
+    return None
 
 def get_json_path(folder, filename):
     """Return the full path for a JSON file in a given folder."""
@@ -384,7 +390,7 @@ def edit_student():
         return jsonify(success=False, message="All fields are required.")
 
     try:
-        student_db = Student.query.get(int(student_id))
+        student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
         
@@ -412,7 +418,7 @@ def delete_student():
         return jsonify(success=False, message="Student ID is required.")
 
     try:
-        student_db = Student.query.get(int(student_id))
+        student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
         
@@ -443,7 +449,7 @@ def reset_student_password():
         return jsonify(success=False, message="Student ID is required.")
 
     try:
-        student_db = Student.query.get(int(student_id))
+        student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
         
@@ -613,7 +619,7 @@ def reset_student_result():
 def student():
     """Student dashboard."""
     student = get_student()
-    teacher = Teacher.query.get(student.teacher_id) if student else None
+    teacher = db.session.get(Teacher, student.teacher_id) if student else None
     
     return render_template(
         'student.html',
@@ -626,7 +632,7 @@ def student():
 def quiz():
     """Display quiz for student to take."""
     student = get_student()
-    teacher = Teacher.query.get(student.teacher_id) if student else None
+    teacher = db.session.get(Teacher, student.teacher_id) if student else None
     quiz_questions = []
     already_done = False
     student_result = None
@@ -663,7 +669,7 @@ def quiz():
 def submit_quiz():
     """Handle quiz submission and scoring."""
     student = get_student()
-    teacher = Teacher.query.get(student.teacher_id) if student else None
+    teacher = db.session.get(Teacher, student.teacher_id) if student else None
     
     if not teacher:
         return jsonify(success=False, message="Teacher not found.")

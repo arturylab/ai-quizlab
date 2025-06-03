@@ -6,31 +6,40 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ## ✨ Features
 
-- 🔐 **Teacher and Student Login:** Secure authentication for both roles with session timeouts for added security.
+- 🔐 **Teacher and Student Authentication:** Secure login system for both roles with session timeouts for enhanced security.
 - 🧑‍🏫 **Teacher Dashboard:** 
-  - 📤 Upload student lists via CSV files.
-  - 📥 Download student credentials as CSV (passwords are only available immediately after upload or password reset).
-  - 📝 Create and manage quizzes by subject and level, with random question selection for each exam.
-  - 👁️ View student lists and statistics directly from the database.
-  - ⚙️ Edit your profile (name, school, and password) from a dedicated profile page.
+  - 📤 Upload student lists via CSV files with automatic credential generation.
+  - 📥 Download student credentials as CSV (passwords available only after upload or reset).
+  - 📝 Create and manage quizzes by subject and difficulty level.
+  - 🎲 Random question selection for each exam session.
+  - 👁️ View comprehensive student lists and performance statistics.
+  - ⚙️ Edit profile information (name, school, password) from dedicated profile page.
+  - 🔄 Reset student passwords when needed.
 - 👨‍🎓 **Student Dashboard:** 
-  - 🧪 Participate in science quizzes.
-  - ⏰ Session time limits for secure access.
-  - 📊 Track quiz progress and results.
-- 📂 **CSV Integration:** Easily import and export student data.
-- 🔒 **Password Security:** All passwords are securely hashed. Plain passwords are only shown once after creation or reset.
-- 💬 **User Feedback:** Flash messages provide clear feedback for login, registration, profile updates, and errors.
+  - 🧪 Access science quizzes across multiple subjects.
+  - ⏰ Timed quiz sessions with automatic logout for security.
+  - 📊 Track quiz progress, scores, and performance history.
+  - 🎯 Subject-specific quiz categories and difficulty levels.
+- 📂 **CSV Data Management:** Seamless import and export of student data.
+- 🔒 **Advanced Security:** 
+  - Password hashing with industry-standard algorithms.
+  - Session management with timeout protection.
+  - Secure credential handling (plain passwords shown only once).
+- 💬 **User Experience:** Flash messaging system for clear feedback on all operations.
+- 🎨 **Responsive Design:** Modern, mobile-friendly interface.
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Technology Stack
 
-- 🐍 Python 3
-- ⚗️ Flask
-- 🗄️ Flask-SQLAlchemy
-- 🐘 PostgreSQL
-- 🖥️ HTML5, CSS3
-- 💻 JavaScript (for frontend enhancements and profile editing)
+- 🐍 **Backend:** Python 3.8+
+- ⚗️ **Web Framework:** Flask with extensions
+- 🗄️ **ORM:** Flask-SQLAlchemy
+- 🐘 **Database:** PostgreSQL
+- 🖥️ **Frontend:** HTML5, CSS3
+- 💻 **Client-side:** JavaScript (ES6+)
+- 📦 **Package Management:** pip
+- 🔧 **Environment Management:** python-dotenv
 
 ---
 
@@ -38,76 +47,185 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ### Prerequisites
 
-- Python 3.x
-- PostgreSQL
+Make sure you have the following installed:
+- Python 3.8 or higher
+- PostgreSQL 12 or higher
 - pip (Python package manager)
+- Git
 
 ### Installation
 
 1. **Clone the repository:**
-    ```sh
+    ```bash
     git clone https://github.com/yourusername/ai-quizlab.git
     cd ai-quizlab
     ```
 
 2. **Create and activate a virtual environment:**
-    ```sh
+    ```bash
     python3 -m venv venv
-    source venv/bin/activate
+    source venv/bin/activate  # On macOS/Linux
+    # or
+    venv\Scripts\activate     # On Windows
     ```
 
-3. **Install dependencies:**
-    ```sh
+3. **Install required dependencies:**
+    ```bash
     pip install -r requirements.txt
     ```
 
-4. **Create a `.env` file in the project root:**
-    ```
-    SECRET_KEY=your_secret_key_here
-    DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/ai-quizlab
+4. **Set up environment variables:**
+   Create a `.env` file in the project root directory:
+    ```env
+    SECRET_KEY=your_super_secret_key_here_change_this_in_production
+    DATABASE_URL=postgresql://username:password@localhost:5432/ai_quizlab
     ```
 
-5. **Initialize the database:**
-    ```sh
+5. **Set up the database:**
+    ```bash
+    # Create the database in PostgreSQL first
+    createdb ai_quizlab
+    
+    # Then run the application to auto-create tables
     python3 app.py
     ```
-    The tables will be created automatically on first run.
+
+6. **Access the application:**
+   Open your browser and navigate to `http://localhost:5001`
 
 ---
 
-## 📝 Usage
+## 📝 Usage Guide
 
-- 🧑‍🏫 **Teachers:** Register via the `/register` page, then log in to upload student lists, manage quizzes, and edit your profile. Uploaded student lists are stored in the database and can be downloaded as CSV. Passwords are only available for download immediately after upload or reset.
-- 👨‍🎓 **Students:** Log in with credentials provided by their teacher to access quizzes. Session timeouts ensure secure access.
-- ⚙️ **Profile Editing:** Teachers can update their name, school, and password from the profile page.
-- 📝 **Randomized Exams:** Each quiz is generated with a random selection of questions per subject and level.
+### For Teachers 🧑‍🏫
+
+1. **Registration & Login:**
+   - Navigate to `/register` to create a teacher account
+   - Login at `/login` with your credentials
+
+2. **Student Management:**
+   - Upload CSV files with student information (Name, Email format)
+   - Download generated credentials immediately after upload
+   - View all students in your database
+   - Reset student passwords when necessary
+
+3. **Quiz Management:**
+   - Create quizzes by selecting subjects and difficulty levels
+   - Questions are randomly selected for each student session
+   - Monitor student performance and statistics
+
+4. **Profile Management:**
+   - Update your name, school affiliation, and password
+   - Access profile settings from the dashboard
+
+### For Students 👨‍🎓
+
+1. **Login:**
+   - Use credentials provided by your teacher
+   - Sessions automatically timeout for security
+
+2. **Taking Quizzes:**
+   - Select from available science subjects
+   - Complete timed quiz sessions
+   - View your scores and progress
+
+3. **Performance Tracking:**
+   - Review your quiz history
+   - Monitor improvement over time
 
 ---
 
-## 📁 File Structure
+## 📁 Project Structure
 
-- `app.py` - Main Flask application.
-- `models.py` - Database models.
-- `config.py` - Configuration settings (uses `.env` for secrets and DB URI).
-- `templates/` - HTML templates (Jinja2).
-- `static/` - Static files (CSS, JS).
-- `.env` - Environment variables (not tracked by git).
-- `.gitignore` - Ignores `venv/`, `__pycache__/`, `.env`, `.csv`, and credentials files.
-- `README.md` - Project documentation.
+```
+ai-quizlab/
+├── app.py                 # Main Flask application and routes
+├── models.py             # Database models and schema
+├── config.py             # Application configuration
+├── requirements.txt      # Python dependencies
+├── .env                  # Environment variables (not in repo)
+├── .gitignore           # Git ignore rules
+├── README.md            # Project documentation
+├── templates/           # Jinja2 HTML templates
+│   ├── base.html        # Base template
+│   ├── login.html       # Login page
+│   ├── register.html    # Registration page
+│   ├── dashboard.html   # Main dashboard
+│   ├── profile.html     # User profile page
+│   └── quiz.html        # Quiz interface
+├── static/              # Static assets
+│   ├── css/            # Stylesheets
+│   ├── js/             # JavaScript files
+│   └── uploads/        # File upload directory
+└── data/          # Examns and results
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `SECRET_KEY` | Flask secret key for sessions | Yes | None |
+| `DATABASE_URL` | PostgreSQL connection string | Yes | None |
+
+### CSV Upload Format
+
+When uploading student lists, use this CSV format:
+```csv
+exp,name,group
+2001,Alice Walker,A
+2002,Brian Lee,A
+```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request.  
-Feel free to open issues for suggestions or bugs.
+We welcome contributions! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+3. **Commit your changes:** `git commit -m 'Add amazing feature'`
+4. **Push to the branch:** `git push origin feature/amazing-feature`
+5. **Open a Pull Request`
+
+### Development Guidelines
+
+- Follow PEP 8 style guidelines
+- Write descriptive commit messages
+- Add tests for new features
+- Update documentation as needed
+
+---
+
+## 🐛 Known Issues & Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error:**
+   - Verify PostgreSQL is running
+   - Check DATABASE_URL in .env file
+   - Ensure database exists
+
+2. **CSV Upload Issues:**
+   - Verify CSV format matches expected structure
+   - Check file permissions
+
+3. **Session Timeout:**
+   - Normal security feature
+   - Re-login if session expires
+
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**AI QuizLab** – Making science learning interactive and fun! 🚀
+
+**AI QuizLab** – Making science education interactive, engaging, and accessible! 🚀🔬
