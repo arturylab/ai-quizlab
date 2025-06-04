@@ -82,16 +82,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Create quiz AJAX
+    // AI options toggle
+    const useAICheckbox = document.getElementById('useAI');
+    const aiOptions = document.getElementById('aiOptions');
+    
+    if (useAICheckbox && aiOptions) {
+        useAICheckbox.addEventListener('change', function() {
+            aiOptions.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    // Create quiz AJAX with real-time progress tracking
     const createQuizForm = document.getElementById('createQuizForm');
     if (createQuizForm) {
         createQuizForm.addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(this);
             const messageDiv = document.getElementById('quizMessage');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const useAI = document.getElementById('useAI') && document.getElementById('useAI').checked;
             
-            // Show loading message
-            messageDiv.innerHTML = '<div style="color:blue;">Creating quiz...</div>';
+            // Count total categories to process
+            const totalCategories = getTotalCategories(formData);
+            
+            if (totalCategories === 0) {
+                messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
+                return;
+            }
+            
+            // Show appropriate loading message
+            if (useAI) {
+                messageDiv.innerHTML = '<div style="color:blue;">🤖 AI is generating your quiz... This may take a few moments...</div>';
+            } else {
+                messageDiv.innerHTML = '<div style="color:blue;">Creating quiz from templates...</div>';
+            }
+            
+            // Show progress bar
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initializing...';
+            
+            // Start progress tracking
+            const progressInterval = startProgressTracking(progressBar, progressText);
             
             fetch(this.action, {
                 method: 'POST',
@@ -105,17 +139,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                if (data.success) {
-                    messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
-                } else {
-                    messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
-                }
+                // Stop progress tracking
+                clearInterval(progressInterval);
+                
+                // Show completion
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Completed!';
+                
+                // Hide progress bar after a moment and show result
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    
+                    if (data.success) {
+                        messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
+                    } else {
+                        messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                    }
+                }, 1000);
             })
             .catch(error => {
+                // Stop progress tracking and hide progress bar on error
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
                 console.error('Create quiz error:', error);
                 messageDiv.innerHTML = '<div style="color:red;">Error creating quiz. Please try again.</div>';
             });
         });
+    }
+
+    // Real-time progress tracking function
+    function startProgressTracking(progressBar, progressText) {
+        return setInterval(() => {
+            fetch('/quiz_progress', {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'processing') {
+                    // Update progress bar based on real backend progress
+                    const percentage = Math.min(data.percentage, 95); // Cap at 95% until completion
+                    progressBar.style.width = percentage + '%';
+                    progressText.textContent = data.message || 'Processing...';
+                } else if (data.status === 'completed') {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Finalizing...';
+                } else if (data.status === 'error') {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Error occurred';
+                }
+            })
+            .catch(error => {
+                console.log('Progress tracking error:', error);
+            });
+        }, 500); // Check progress every 500ms
+    }
+
+    // Function to count total categories with questions > 0
+    function getTotalCategories(formData) {
+        let count = 0;
+        const categories = ['math', 'physics', 'chemistry', 'biology', 'cs'];
+        
+        categories.forEach(category => {
+            const numQuestions = formData.get(`num_questions_${category}`);
+            if (numQuestions && parseInt(numQuestions) > 0) {
+                count++;
+            }
+        });
+        
+        return count;
     }
 
     // Profile editing functionality
@@ -325,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial attachment of event listeners
     attachStudentEventListeners();
 
-    // Retry quiz
+    // Retry quiz functionality
     document.querySelectorAll('.retry-quiz').forEach(function(btn) {
         btn.onclick = function() {
             const row = btn.closest('tr');

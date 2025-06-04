@@ -10,11 +10,14 @@ import os
 import json
 import io
 from functools import wraps
+from ai_quiz_generator import AIQuizGenerator
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.permanent_session_lifetime = timedelta(minutes=30)
 db.init_app(app)
+
+ai_generator = AIQuizGenerator()
 
 # ---------- DECORATORS ---------- #
 
@@ -515,11 +518,49 @@ def download_results_csv():
 
 # ---------- Quiz Management Routes ---------- #
 
+import threading
+import time
+
+# Global variable to track progress
+quiz_progress = {
+    'current': 0,
+    'total': 0,
+    'status': 'idle',
+    'message': '',
+    'teacher_id': None
+}
+
+@app.route('/quiz_progress')
+@teacher_required
+def get_quiz_progress():
+    """Get current quiz generation progress."""
+    teacher = get_teacher()
+    if quiz_progress['teacher_id'] == teacher.id:
+        return jsonify({
+            'progress': quiz_progress['current'],
+            'total': quiz_progress['total'],
+            'status': quiz_progress['status'],
+            'message': quiz_progress['message'],
+            'percentage': int((quiz_progress['current'] / quiz_progress['total'] * 100)) if quiz_progress['total'] > 0 else 0
+        })
+    else:
+        return jsonify({
+            'progress': 0,
+            'total': 0,
+            'status': 'idle',
+            'message': '',
+            'percentage': 0
+        })
+
 @app.route('/create_quiz', methods=['POST'])
 @teacher_required
 def create_quiz():
-    """Create a customized quiz from different subject categories."""
+    """Create a customized quiz using AI generation."""
+    global quiz_progress
     teacher = get_teacher()
+    use_ai = request.form.get('use_ai', 'false') == 'true'
+    ai_model = "phi3:mini"  # Fixed to use only Phi3 Mini
+    
     categories = {
         'math': 'Mathematics',
         'physics': 'Physics',
@@ -527,29 +568,81 @@ def create_quiz():
         'biology': 'Biology',
         'cs': 'Computer Science'
     }
+    
+    # Count total categories to process
+    categories_to_process = []
+    
+    for key, label in categories.items():
+        num_questions = request.form.get(f'num_questions_{key}')
+        if num_questions and int(num_questions) > 0:
+            categories_to_process.append((key, label, int(num_questions), request.form.get(f'level_{key}')))
+    
+    if len(categories_to_process) == 0:
+        msg = 'Please select at least one category with questions > 0.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=msg)
+        flash(msg, 'warning')
+        return redirect(url_for('teacher'))
+    
+    # Initialize progress
+    quiz_progress.update({
+        'current': 0,
+        'total': len(categories_to_process),
+        'status': 'processing',
+        'message': 'Starting quiz generation...',
+        'teacher_id': teacher.id
+    })
+    
     quiz_questions = []
 
     # Process each category
-    for key, label in categories.items():
-        num_questions = request.form.get(f'num_questions_{key}')
-        level = request.form.get(f'level_{key}')
+    for i, (key, label, num_q, level) in enumerate(categories_to_process):
+        # Update progress
+        quiz_progress.update({
+            'current': i,
+            'message': f'Processing {label}... ({i+1}/{len(categories_to_process)})'
+        })
         
-        if num_questions and int(num_questions) > 0:
-            level_folder = level.lower().replace(' ', '_')
-            file_key = 'computerscience' if key == 'cs' else key
-            exam_path = os.path.join('data', 'exams', 'precreated', level_folder, f'{file_key}.json')
-            
+        print(f"Processing category {i+1}/{len(categories_to_process)}: {label}")
+        
+        if use_ai:
+            # Use AI to generate questions with Phi3 Mini
             try:
-                if os.path.exists(exam_path):
-                    with open(exam_path, 'r', encoding='utf-8') as f:
-                        questions = json.load(f)
-                    random.shuffle(questions)
-                    quiz_questions.extend(questions[:int(num_questions)])
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"Error loading questions from {exam_path}: {e}")
+                print(f"Generating {num_q} {level} {label} questions using Ollama (phi3:mini)...")
+                quiz_progress['message'] = f'Generating {label} questions with AI...'
+                
+                ai_questions = ai_generator.generate_questions_ollama(label, level, num_q, ai_model)
+                quiz_questions.extend(ai_questions)
+                print(f"✓ Completed {label}: {len(ai_questions)} questions added")
+                
+            except Exception as e:
+                print(f"AI generation failed for {label}: {e}")
+                quiz_progress['message'] = f'AI failed for {label}, using templates...'
+                # Fallback to JSON files
+                questions = load_questions_from_json(key, level, num_q)
+                quiz_questions.extend(questions)
+                print(f"✓ Fallback {label}: {len(questions)} questions from templates")
+        else:
+            # Use existing JSON files
+            print(f"Loading {num_q} {level} {label} questions from templates...")
+            quiz_progress['message'] = f'Loading {label} questions from templates...'
+            
+            questions = load_questions_from_json(key, level, num_q)
+            quiz_questions.extend(questions)
+            print(f"✓ Loaded {label}: {len(questions)} questions from templates")
+        
+        # Small delay to make progress visible
+        time.sleep(0.2)
+
+    # Final progress update
+    quiz_progress.update({
+        'current': len(categories_to_process),
+        'message': 'Saving quiz...'
+    })
 
     if not quiz_questions:
-        msg = 'No questions selected. Please specify at least one category and number of questions.'
+        quiz_progress['status'] = 'error'
+        msg = 'No questions generated. Please check your settings and try again.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'warning')
@@ -557,6 +650,7 @@ def create_quiz():
 
     # Save generated quiz
     try:
+        print("Saving quiz to file...")
         generated_dir = os.path.join('data', 'exams', 'generated')
         os.makedirs(generated_dir, exist_ok=True)
         quiz_filename = f'quiz_{teacher.username}.json'
@@ -565,18 +659,45 @@ def create_quiz():
         with open(quiz_path, 'w', encoding='utf-8') as f:
             json.dump(quiz_questions, f, ensure_ascii=False, indent=4)
 
-        msg = f'Quiz generated successfully! 📝 Total questions: {len(quiz_questions)} 😃'
+        # Mark as completed
+        quiz_progress.update({
+            'status': 'completed',
+            'message': 'Quiz generated successfully!'
+        })
+
+        source = "AI-generated" if use_ai else "Template-based"
+        print(f"✅ {source} quiz saved successfully! Total: {len(quiz_questions)} questions")
+        msg = f'{source} quiz created successfully! 📝 Total questions: {len(quiz_questions)} 😃'
+        
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=True, message=msg)
         flash(msg, 'success')
     except IOError as e:
+        quiz_progress['status'] = 'error'
         print(f"Error saving quiz: {e}")
-        msg = 'Error generating quiz. Please try again.'
+        msg = 'Error saving quiz. Please try again.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'danger')
 
     return redirect(url_for('teacher'))
+
+def load_questions_from_json(key, level, num_questions):
+    """Load questions from existing JSON files."""
+    level_folder = level.lower().replace(' ', '_')
+    file_key = 'computerscience' if key == 'cs' else key
+    exam_path = os.path.join('data', 'exams', 'precreated', level_folder, f'{file_key}.json')
+    
+    try:
+        if os.path.exists(exam_path):
+            with open(exam_path, 'r', encoding='utf-8') as f:
+                questions = json.load(f)
+            random.shuffle(questions)
+            return questions[:num_questions]
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"Error loading questions from {exam_path}: {e}")
+    
+    return []
 
 @app.route('/exam_teacher')
 @teacher_required
