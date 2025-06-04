@@ -1,11 +1,11 @@
 # AI QuizLab 🤖
 
-An intelligent quiz management system that combines AI-powered question generation with traditional template-based quizzes. Built with Flask, this application allows teachers to create customized exams using Microsoft's Phi3 Mini model or pre-curated question banks.
+An intelligent quiz management system that combines AI-powered question generation with traditional template-based quizzes. Built with Flask, this application allows teachers to create customized exams using OpenRouter's AI models or pre-curated question banks.
 
 ## ✨ Features
 
 ### 🧠 AI-Powered Question Generation
-- **Intelligent Quiz Creation**: Generate fresh, unique questions using Microsoft's Phi3 Mini model
+- **Intelligent Quiz Creation**: Generate fresh, unique questions using OpenRouter's advanced AI models
 - **Hybrid Approach**: Seamlessly fallback to pre-created questions when AI is unavailable
 - **Real-time Progress Tracking**: Visual progress bar showing generation status
 - **Smart Categorization**: AI generates questions tailored to specific academic levels (Elementary, Middle School, High School)
@@ -32,7 +32,7 @@ An intelligent quiz management system that combines AI-powered question generati
 ## 🛠️ Technology Stack
 
 - **Backend**: Flask, SQLAlchemy, Flask-Migrate
-- **AI Integration**: Ollama with Phi3 Mini model
+- **AI Integration**: OpenRouter API with multiple AI models
 - **Database**: PostgreSQL (production) / SQLite (development)
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **File Processing**: CSV import/export functionality
@@ -40,8 +40,7 @@ An intelligent quiz management system that combines AI-powered question generati
 ## 📋 Prerequisites
 
 - Python 3.8+
-- Ollama (for AI question generation)
-- Phi3 Mini model installed in Ollama
+- OpenRouter API key (for AI question generation)
 - PostgreSQL (for production) or SQLite (for development)
 
 ## 🚀 Installation
@@ -63,17 +62,16 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Install and Configure Ollama (Optional - for AI features)
-```bash
-# Install Ollama from https://ollama.ai
-# Pull the Phi3 Mini model
-ollama pull phi3:mini
-```
+### 4. Get OpenRouter API Key (Optional - for AI features)
+1. Visit [OpenRouter.ai](https://openrouter.ai)
+2. Create an account and generate an API key
+3. Add credits to your account for AI model access
 
 ### 5. Set Up Environment Variables
 Create a `.env` file in the root directory:
 ```env
 SECRET_KEY=your-secret-key-here
+API_KEY=your-openrouter-api-key-here
 DATABASE_URL=sqlite:///quiz_app.db  # For development
 # DATABASE_URL=postgresql://user:password@localhost/dbname  # For production
 ```
@@ -121,10 +119,16 @@ The application will be available at `http://localhost:5001`
 ## 🧬 AI Question Generation
 
 ### How It Works
-- **Primary**: Uses Ollama with Phi3 Mini model for intelligent question generation
-- **Fallback**: Automatically uses pre-created question bank if AI unavailable
+- **Primary**: Uses OpenRouter API with advanced AI models for intelligent question generation
+- **Fallback**: Automatically uses pre-created question bank if AI unavailable or rate limited
 - **Quality Assurance**: AI-generated questions are validated for format and content
 - **Performance**: Optimized prompts for fast, accurate generation
+
+### Supported AI Models
+- **Microsoft Phi-4 Reasoning Plus** (Free tier with daily limits)
+- **GPT-3.5 Turbo** (Paid, reliable and fast)
+- **Claude-3 Haiku** (Paid, high quality)
+- **Automatic Fallback**: Switches to pre-created questions when needed
 
 ### Supported Subjects & Levels
 - **Subjects**: Mathematics, Physics, Chemistry, Biology, Computer Science
@@ -136,10 +140,11 @@ The application will be available at `http://localhost:5001`
 ```
 AI-QuizLab/
 ├── app.py                 # Main Flask application
-├── ai_quiz_generator.py   # AI question generation logic
+├── ai_quiz_generator.py   # OpenRouter AI integration
 ├── models.py              # Database models
 ├── config.py              # Configuration settings
 ├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables (API keys)
 ├── static/
 │   ├── script.js         # Enhanced frontend logic
 │   └── styles.css        # Application styling
@@ -161,15 +166,26 @@ AI-QuizLab/
 ## 🔧 Configuration
 
 ### AI Settings
-- **Model**: Phi3 Mini (optimized for educational content)
+- **Model**: Microsoft Phi-4 Reasoning Plus (free tier) or paid models
 - **Fallback**: Automatic fallback to pre-created questions
-- **Timeout**: 45 seconds per generation request
+- **Rate Limiting**: Handles API limits gracefully
 - **Quality Control**: Format validation and content filtering
 
 ### Database Configuration
 - **Development**: SQLite (default)
 - **Production**: PostgreSQL recommended
 - **Migrations**: Flask-Migrate for schema management
+
+## 💰 AI Model Costs
+
+### Free Tier
+- **Phi-4 Reasoning Plus**: 10 requests per day (free)
+- **Rate Limits**: Automatic fallback when exceeded
+
+### Paid Models (Optional)
+- **GPT-3.5 Turbo**: ~$0.002 per quiz generation
+- **Claude-3 Haiku**: ~$0.003 per quiz generation
+- **Higher Limits**: No daily restrictions
 
 ## 🚀 Advanced Features
 
@@ -187,6 +203,11 @@ AI-QuizLab/
 - Bulk CSV upload with error reporting
 - Password reset functionality
 - Performance analytics and reporting
+
+### Rate Limit Management
+- Graceful handling of API rate limits
+- Automatic fallback to pre-created questions
+- Smart retry logic with delays
 
 ## 🤝 Contributing
 
@@ -206,8 +227,10 @@ For support, feature requests, or bug reports, please open an issue on GitHub.
 
 ## 🙏 Acknowledgments
 
-- **Microsoft** for the Phi3 Mini model
-- **Ollama** for the AI integration platform
+- **OpenRouter** for providing access to multiple AI models
+- **Microsoft** for the Phi-4 model
+- **Anthropic** for Claude models
+- **OpenAI** for GPT models
 - **Flask** community for the excellent web framework
 - Contributors and testers who helped improve the application
 

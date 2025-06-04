@@ -1,67 +1,62 @@
 [
     {
-        "question": "What is the decimal form of 1/4?",
+        "question": "How many legs do 3 cats have?",
         "options": [
-            "0.2",
-            "0.25",
-            "0.3",
-            "0.4"
+            "12",
+            "8",
+            "6",
+            "10"
         ],
-        "answer": "0.25",
+        "answer": "12",
         "category": "Mathematics",
-        "level": "Middle School",
-        "id": "MIX-MATH-001"
+        "level": "Elementary"
     },
     {
-        "question": "A ball rolling down a hill speeds up because of which force?",
+        "question": "Which is faster: a car or a bicycle?",
         "options": [
-            "Magnetic force",
-            "Gravity",
-            "Frictional force",
-            "Electrical force"
+            "Bicycle",
+            "Car",
+            "They are equal",
+            "None"
         ],
-        "answer": "Gravity",
+        "answer": "Car",
         "category": "Physics",
-        "level": "Middle School",
-        "id": "MIX-PHYS-001"
+        "level": "Elementary"
     },
     {
-        "question": "Which of the end products contains water after a chemical reaction involving hydrogen and oxygen?",
+        "question": "Which state of matter takes the shape of its container?",
         "options": [
-            "Water (H2O)",
-            "Hydrogen Peroxide (H2O2)",
-            "Methane (CH4)",
-            "Carbon Dioxide (CO2)"
+            "Solid",
+            "Liquid",
+            "Gas",
+            "Both liquid and gas"
         ],
-        "answer": "Water (H2O)",
+        "answer": "Both liquid and gas",
         "category": "Chemistry",
-        "level": "Middle School",
-        "id": "MIX-CHEM-001"
+        "level": "Elementary"
     },
     {
-        "question": "Which of the endosymbiotic events likely led to the development of eukaryotic cells?",
+        "question": "Which organ helps you breathe?",
         "options": [
-            "Engulfing of a prokaryotic cell by another cell leading to mutual benefit.",
-            "Taking in food particles through a surrounding membrane without forming any symbiotic relationship.",
-            "Ingestion of oxygen from the environment directly into the cytoplasm.",
-            "Formation of multicellular organisms without internal specialization."
+            "Heart",
+            "Lungs",
+            "Brain",
+            "Liver"
         ],
-        "answer": "Engulfing of a prokaryotic cell by another cell leading to mutual benefit.",
+        "answer": "Lungs",
         "category": "Biology",
-        "level": "Middle School",
-        "id": "MIX-BIOL-001"
+        "level": "Elementary"
     },
     {
-        "question": "What is an algorithm?",
+        "question": "What do we call someone who writes computer code?",
         "options": [
-            "A step-by-step solution to a problem",
-            "A type of software",
-            "A programming language",
-            "A hardware device"
+            "Driver",
+            "Chef",
+            "Programmer",
+            "Artist"
         ],
-        "answer": "A step-by-step solution to a problem",
+        "answer": "Programmer",
         "category": "Computer Science",
-        "level": "Middle School",
-        "id": "MIX-COMP-001"
+        "level": "Elementary"
     }
 ]

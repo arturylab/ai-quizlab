@@ -91,7 +91,7 @@
                     <div style="margin-bottom: 10px;">
                         <label>
                             <input type="checkbox" id="useAI" name="use_ai" value="true">
-                            Use AI to generate questions
+                            Use AI to generate questions (powered by OpenRouter)
                         </label>
                     </div>
                     
@@ -100,7 +100,7 @@
                             <div style="margin-bottom: 8px;">
                                 <strong>📝 Question Generation:</strong>
                                 <ul style="margin: 5px 0; padding-left: 20px;">
-                                    <li><strong>AI Enabled:</strong> Generate fresh, unique questions tailored to your specified level and subject</li>
+                                    <li><strong>AI Enabled:</strong> Generate fresh, unique questions tailored to your specified level and subject using advanced AI models</li>
                                     <li><strong>AI Disabled:</strong> Use pre-saved questions from our curated question bank</li>
                                 </ul>
                             </div>
@@ -108,12 +108,23 @@
                             <div style="margin-bottom: 8px;">
                                 <strong>🧠 Model Information:</strong>
                                 <ul style="margin: 5px 0; padding-left: 20px;">
-                                    <li><strong>Phi3 Mini:</strong> Microsoft's compact model optimized for educational content. Excellent balance of speed and accuracy for generating well-structured academic questions with proper difficulty progression.</li>
+                                    <li><strong>Microsoft Phi-4 Reasoning Plus:</strong> State-of-the-art AI model optimized for educational content generation. Provides exceptional reasoning capabilities and creates contextually appropriate questions with proper academic rigor.</li>
+                                    <li><strong>Powered by OpenRouter:</strong> High-performance API infrastructure ensuring reliable and fast question generation</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="margin-bottom: 8px;">
+                                <strong>🌟 Features:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    <li>Advanced reasoning capabilities for complex problem generation</li>
+                                    <li>Contextually appropriate questions based on academic level</li>
+                                    <li>Automatic fallback to curated questions if AI is unavailable</li>
+                                    <li>Real-time progress tracking during generation</li>
                                 </ul>
                             </div>
                             
                             <div style="font-size: 11px; color: #888; font-style: italic;">
-                                💡 Tip: Phi3 Mini creates contextually appropriate questions based on the selected academic level (Elementary/Middle School/High School)
+                                💡 Tip: Phi-4 creates sophisticated questions that adapt to the selected academic level (Elementary/Middle School/High School) with improved reasoning and contextual understanding
                             </div>
                         </div>
                     </div>
@@ -165,12 +176,12 @@
                     <div style="width: 100%; max-width: 400px; margin: 0 auto; background-color: #f0f0f0; border-radius: 10px; padding: 3px;">
                         <div id="progressBar" style="width: 0%; height: 20px; background: linear-gradient(90deg, #4CAF50, #45a049); border-radius: 8px; transition: width 0.3s ease;"></div>
                     </div>
-                    <div id="progressText" style="margin-top: 8px; font-size: 14px; color: #666;">Initializing...</div>
+                    <div id="progressText" style="margin-top: 8px; font-size: 14px; color: #666;">Initializing OpenRouter Phi-4...</div>
                 </div>
             </form>
         </section>
         
-        <!-- Section 3: Statistics -->
+        <!-- Section 4: Statistics -->
         <section style="margin-top:32px;">
             <h3>Statistics 📊</h3>
             <table style="width:100%; border-collapse: collapse;">
@@ -228,7 +239,7 @@
             <form action="/logout" method="post" style="margin:0;">
                 <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
             </form>
-</div>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

@@ -555,11 +555,10 @@ def get_quiz_progress():
 @app.route('/create_quiz', methods=['POST'])
 @teacher_required
 def create_quiz():
-    """Create a customized quiz using AI generation."""
+    """Create a customized quiz using AI generation with OpenRouter."""
     global quiz_progress
     teacher = get_teacher()
     use_ai = request.form.get('use_ai', 'false') == 'true'
-    ai_model = "phi3:mini"  # Fixed to use only Phi3 Mini
     
     categories = {
         'math': 'Mathematics',
@@ -606,17 +605,18 @@ def create_quiz():
         print(f"Processing category {i+1}/{len(categories_to_process)}: {label}")
         
         if use_ai:
-            # Use AI to generate questions with Phi3 Mini
+            # Use AI to generate questions with OpenRouter
             try:
-                print(f"Generating {num_q} {level} {label} questions using Ollama (phi3:mini)...")
+                print(f"Generating {num_q} {level} {label} questions using OpenRouter (Phi-4)...")
                 quiz_progress['message'] = f'Generating {label} questions with AI...'
                 
-                ai_questions = ai_generator.generate_questions_ollama(label, level, num_q, ai_model)
+                # Use the new OpenRouter method
+                ai_questions = ai_generator.generate_questions_openrouter(label, level, num_q)
                 quiz_questions.extend(ai_questions)
                 print(f"✓ Completed {label}: {len(ai_questions)} questions added")
                 
             except Exception as e:
-                print(f"AI generation failed for {label}: {e}")
+                print(f"OpenRouter AI generation failed for {label}: {e}")
                 quiz_progress['message'] = f'AI failed for {label}, using templates...'
                 # Fallback to JSON files
                 questions = load_questions_from_json(key, level, num_q)
@@ -665,7 +665,7 @@ def create_quiz():
             'message': 'Quiz generated successfully!'
         })
 
-        source = "AI-generated" if use_ai else "Template-based"
+        source = "AI-generated (OpenRouter Phi-4)" if use_ai else "Template-based"
         print(f"✅ {source} quiz saved successfully! Total: {len(quiz_questions)} questions")
         msg = f'{source} quiz created successfully! 📝 Total questions: {len(quiz_questions)} 😃'
         
