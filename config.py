@@ -16,13 +16,11 @@ def test_connection():
     """Test production database connection."""
     try:
         engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-        print("Production database connection successful.")
-        return True
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        print("✅ Database connection successful!")
     except Exception as e:
-        print(f"Production database connection failed: {e}")
-        return False
+        print(f"❌ Database connection failed: {e}")
 
 if __name__ == "__main__":
     print("Testing database connections...")

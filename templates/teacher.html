@@ -84,41 +84,6 @@
         <section style="margin-top:32px;">
             <h3>Create Quiz 📝</h3>
             <form action="/create_quiz" method="post" id="createQuizForm">
-                
-                <!-- AI Options -->
-                <div style="margin-bottom: 20px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center;">
-                    <h4>🤖 AI Generation Options</h4>
-                    <div style="margin-bottom: 10px;">
-                        <label>
-                            <input type="checkbox" id="useAI" name="use_ai" value="true">
-                            Use AI to generate questions
-                        </label>
-                    </div>
-                    
-                    <div id="aiOptions" style="display: none; margin: 0 auto; max-width: 600px; text-align: left;">
-                        <div style="font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-                            <div style="margin-bottom: 8px;">
-                                <strong>📝 Question Generation:</strong>
-                                <ul style="margin: 5px 0; padding-left: 20px;">
-                                    <li><strong>AI Enabled:</strong> Generate fresh, unique questions tailored to your specified level and subject</li>
-                                    <li><strong>AI Disabled:</strong> Use pre-saved questions from our curated question bank</li>
-                                </ul>
-                            </div>
-                            
-                            <div style="margin-bottom: 8px;">
-                                <strong>🧠 Model Information:</strong>
-                                <ul style="margin: 5px 0; padding-left: 20px;">
-                                    <li><strong>Phi3 Mini:</strong> Microsoft's compact model optimized for educational content. Excellent balance of speed and accuracy for generating well-structured academic questions with proper difficulty progression.</li>
-                                </ul>
-                            </div>
-                            
-                            <div style="font-size: 11px; color: #888; font-style: italic;">
-                                💡 Tip: Phi3 Mini creates contextually appropriate questions based on the selected academic level (Elementary/Middle School/High School)
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <table style="width:100%; border-collapse: collapse;">
                     <thead>
                         <tr>
@@ -152,15 +117,17 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                
                 <div style="text-align: center; margin-top:10px; display: flex; justify-content: center; gap: 16px;">
-                    <button type="submit" style="width:auto; display:inline-block;">Create Quiz</button>
+                    <button type="submit" style="width:auto; display:inline-block;">Generate Quiz</button>
                     <a href="{{ url_for('exam_teacher') }}">
-                        <button type="button" style="width:auto; display:inline-block;">Go to Quiz</button>
+                        <button type="button" style="width:auto; display:inline-block;">View Quiz</button>
                     </a>
                 </div>
-                <div id="quizMessage" style="margin-top:12px; text-align: center; color:green;"></div>
+                
+                <div id="quizMessage" style="margin-top:12px; text-align: center;"></div>
 
-                <!-- Progress Bar (initially hidden) -->
+                <!-- Progress Bar -->
                 <div id="progressContainer" style="display: none; margin-top: 15px; text-align: center;">
                     <div style="width: 100%; max-width: 400px; margin: 0 auto; background-color: #f0f0f0; border-radius: 10px; padding: 3px;">
                         <div id="progressBar" style="width: 0%; height: 20px; background: linear-gradient(90deg, #4CAF50, #45a049); border-radius: 8px; transition: width 0.3s ease;"></div>

@@ -82,16 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // AI options toggle
-    const useAICheckbox = document.getElementById('useAI');
-    const aiOptions = document.getElementById('aiOptions');
-    
-    if (useAICheckbox && aiOptions) {
-        useAICheckbox.addEventListener('change', function() {
-            aiOptions.style.display = this.checked ? 'block' : 'none';
-        });
-    }
-
     // Create quiz AJAX with real-time progress tracking
     const createQuizForm = document.getElementById('createQuizForm');
     if (createQuizForm) {
@@ -102,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
-            const useAI = document.getElementById('useAI') && document.getElementById('useAI').checked;
             
             // Count total categories to process
             const totalCategories = getTotalCategories(formData);
@@ -112,17 +101,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Show appropriate loading message
-            if (useAI) {
-                messageDiv.innerHTML = '<div style="color:blue;">🤖 AI is generating your quiz... This may take a few moments...</div>';
-            } else {
-                messageDiv.innerHTML = '<div style="color:blue;">Creating quiz from templates...</div>';
-            }
+            // Show loading message
+            messageDiv.innerHTML = '<div style="color:blue;">📚 Generating quiz from question bank...</div>';
             
             // Show progress bar
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
-            progressText.textContent = 'Initializing...';
+            progressText.textContent = 'Starting generation...';
             
             // Start progress tracking
             const progressInterval = startProgressTracking(progressBar, progressText);
@@ -132,21 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                // Stop progress tracking
                 clearInterval(progressInterval);
-                
-                // Show completion
                 progressBar.style.width = '100%';
                 progressText.textContent = 'Completed!';
                 
-                // Hide progress bar after a moment and show result
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     
@@ -158,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1000);
             })
             .catch(error => {
-                // Stop progress tracking and hide progress bar on error
                 clearInterval(progressInterval);
                 progressContainer.style.display = 'none';
                 console.error('Create quiz error:', error);
@@ -475,6 +450,98 @@ document.addEventListener('DOMContentLoaded', function() {
                     messageDiv.innerHTML = '<div style="color:red;">Error deleting quiz. Please try again.</div>';
                 });
             }
+        });
+    }
+
+    // Handle AI Quiz Generation
+    const generateAIQuizBtn = document.getElementById('generateAIQuiz');
+    if (generateAIQuizBtn) {
+        generateAIQuizBtn.addEventListener('click', function() {
+            const form = document.getElementById('createQuizForm');
+            const formData = new FormData(form);
+            
+            // Count total categories to process
+            const totalCategories = getTotalCategories(formData);
+            
+            if (totalCategories === 0) {
+                const messageDiv = document.getElementById('quizMessage');
+                messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
+                return;
+            }
+            
+            // Add AI flag to form data
+            formData.append('use_ai', 'true');
+            
+            // Show progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const messageDiv = document.getElementById('quizMessage');
+            
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initializing AI generation...';
+            messageDiv.innerHTML = '<div style="color:blue;">🤖 Generating quiz with AI...</div>';
+            
+            // Disable buttons during generation
+            this.disabled = true;
+            document.querySelector('button[type="submit"]').disabled = true;
+            
+            // Start progress monitoring
+            let progressInterval = setInterval(() => {
+                fetch('/quiz_progress')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.total > 0) {
+                            const percentage = Math.min((data.progress / data.total) * 100, 95);
+                            progressBar.style.width = percentage + '%';
+                            progressText.textContent = data.message || `Processing ${data.progress}/${data.total}...`;
+                        }
+                        
+                        if (data.status === 'completed' || data.status === 'error') {
+                            clearInterval(progressInterval);
+                            progressContainer.style.display = 'none';
+                            
+                            // Re-enable buttons
+                            generateAIQuizBtn.disabled = false;
+                            document.querySelector('button[type="submit"]').disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Progress fetch error:', error);
+                    });
+            }, 1000);
+            
+            // Submit form with AI flag
+            fetch('/create_ai_quiz', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                
+                if (data.success) {
+                    messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
+                } else {
+                    messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                }
+                
+                // Re-enable buttons
+                this.disabled = false;
+                document.querySelector('button[type="submit"]').disabled = false;
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                messageDiv.innerHTML = `<div style="color:red;">Error generating AI quiz: ${error.message}</div>`;
+                
+                // Re-enable buttons
+                this.disabled = false;
+                document.querySelector('button[type="submit"]').disabled = false;
+            });
         });
     }
 });

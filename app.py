@@ -1,23 +1,25 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify, flash
-from werkzeug.security import generate_password_hash
-from datetime import timedelta
-from config import Config
-from models import db, Teacher, Student, Result
 import csv
 import random
 import string
 import os
 import json
 import io
+import time
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify, flash
+from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash
+from datetime import timedelta
+from config import Config
+from models import db, Teacher, Student, Result, QuestionBank, Quiz, QuizQuestion
 from functools import wraps
-from ai_quiz_generator import AIQuizGenerator
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.permanent_session_lifetime = timedelta(minutes=30)
-db.init_app(app)
 
-ai_generator = AIQuizGenerator()
+# Initialize database and migrations
+db.init_app(app)
+migrate = Migrate(app, db)
 
 # ---------- DECORATORS ---------- #
 
@@ -518,9 +520,6 @@ def download_results_csv():
 
 # ---------- Quiz Management Routes ---------- #
 
-import threading
-import time
-
 # Global variable to track progress
 quiz_progress = {
     'current': 0,
@@ -555,36 +554,31 @@ def get_quiz_progress():
 @app.route('/create_quiz', methods=['POST'])
 @teacher_required
 def create_quiz():
-    """Create a customized quiz using AI generation."""
+    """Create quiz using questions from the question bank."""
     global quiz_progress
     teacher = get_teacher()
-    use_ai = request.form.get('use_ai', 'false') == 'true'
-    ai_model = "phi3:mini"  # Fixed to use only Phi3 Mini
     
     categories = {
         'math': 'Mathematics',
-        'physics': 'Physics',
+        'physics': 'Physics', 
         'chemistry': 'Chemistry',
         'biology': 'Biology',
         'cs': 'Computer Science'
     }
     
-    # Count total categories to process
     categories_to_process = []
-    
     for key, label in categories.items():
-        num_questions = request.form.get(f'num_questions_{key}')
-        if num_questions and int(num_questions) > 0:
-            categories_to_process.append((key, label, int(num_questions), request.form.get(f'level_{key}')))
+        num_questions_str = request.form.get(f'num_questions_{key}')
+        if num_questions_str and num_questions_str.isdigit() and int(num_questions_str) > 0:
+            categories_to_process.append((key, label, int(num_questions_str), request.form.get(f'level_{key}')))
     
-    if len(categories_to_process) == 0:
+    if not categories_to_process:
         msg = 'Please select at least one category with questions > 0.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'warning')
         return redirect(url_for('teacher'))
     
-    # Initialize progress
     quiz_progress.update({
         'current': 0,
         'total': len(categories_to_process),
@@ -593,119 +587,197 @@ def create_quiz():
         'teacher_id': teacher.id
     })
     
-    quiz_questions = []
-
-    # Process each category
-    for i, (key, label, num_q, level) in enumerate(categories_to_process):
-        # Update progress
-        quiz_progress.update({
-            'current': i,
-            'message': f'Processing {label}... ({i+1}/{len(categories_to_process)})'
-        })
-        
-        print(f"Processing category {i+1}/{len(categories_to_process)}: {label}")
-        
-        if use_ai:
-            # Use AI to generate questions with Phi3 Mini
-            try:
-                print(f"Generating {num_q} {level} {label} questions using Ollama (phi3:mini)...")
-                quiz_progress['message'] = f'Generating {label} questions with AI...'
-                
-                ai_questions = ai_generator.generate_questions_ollama(label, level, num_q, ai_model)
-                quiz_questions.extend(ai_questions)
-                print(f"✓ Completed {label}: {len(ai_questions)} questions added")
-                
-            except Exception as e:
-                print(f"AI generation failed for {label}: {e}")
-                quiz_progress['message'] = f'AI failed for {label}, using templates...'
-                # Fallback to JSON files
-                questions = load_questions_from_json(key, level, num_q)
-                quiz_questions.extend(questions)
-                print(f"✓ Fallback {label}: {len(questions)} questions from templates")
-        else:
-            # Use existing JSON files
-            print(f"Loading {num_q} {level} {label} questions from templates...")
-            quiz_progress['message'] = f'Loading {label} questions from templates...'
-            
-            questions = load_questions_from_json(key, level, num_q)
-            quiz_questions.extend(questions)
-            print(f"✓ Loaded {label}: {len(questions)} questions from templates")
-        
-        # Small delay to make progress visible
-        time.sleep(0.2)
-
-    # Final progress update
-    quiz_progress.update({
-        'current': len(categories_to_process),
-        'message': 'Saving quiz...'
-    })
-
-    if not quiz_questions:
-        quiz_progress['status'] = 'error'
-        msg = 'No questions generated. Please check your settings and try again.'
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify(success=False, message=msg)
-        flash(msg, 'warning')
-        return redirect(url_for('teacher'))
-
-    # Save generated quiz
     try:
-        print("Saving quiz to file...")
-        generated_dir = os.path.join('data', 'exams', 'generated')
-        os.makedirs(generated_dir, exist_ok=True)
-        quiz_filename = f'quiz_{teacher.username}.json'
-        quiz_path = os.path.join(generated_dir, quiz_filename)
+        existing_quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
+        if existing_quiz:
+            existing_quiz.is_active = False
+            db.session.commit()
         
-        with open(quiz_path, 'w', encoding='utf-8') as f:
-            json.dump(quiz_questions, f, ensure_ascii=False, indent=4)
+        new_quiz = Quiz(
+            teacher_id=teacher.id,
+            name=f"Quiz - {teacher.name}",
+            description="Generated quiz from question bank"
+        )
+        db.session.add(new_quiz)
+        db.session.flush()
+        
+        generation_stats = {
+            'from_bank': 0,
+            'failed_categories': []
+        }
+        
+        all_quiz_questions = []
 
-        # Mark as completed
+        for i, (key, label, num_q, level) in enumerate(categories_to_process):
+            quiz_progress.update({
+                'current': i,
+                'message': f'Processing {label}... ({i+1}/{len(categories_to_process)})'
+            })
+            
+            print(f"Processing {label}: {num_q} questions from bank at level {level}")
+            
+            bank_questions = load_questions_from_bank(label, level, num_q)
+            
+            if not bank_questions:
+                generation_stats['failed_categories'].append(f"{label} ({level})")
+                print(f"No questions found in bank for {label} at level {level}")
+                # Continue to next category if no questions found for this one
+                # If you want to fail the entire quiz generation, you can add a check here
+                # and rollback / return error.
+                # For now, we'll just skip this category.
+                # continue # Optional: skip if no questions
+            
+            all_quiz_questions.extend(bank_questions)
+            generation_stats['from_bank'] += len(bank_questions)
+            
+            print(f"✓ {label}: {len(bank_questions)} bank questions added.")
+            time.sleep(0.1) # Shorter sleep as DB access is faster
+        
+        if not all_quiz_questions: # Check if any questions were added at all
+            db.session.rollback()
+            quiz_progress.update({
+                'status': 'error',
+                'message': 'Failed to load any questions from the bank.'
+            })
+            
+            msg = '❌ Failed to generate quiz. No questions found in the bank for the selected criteria.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=False, message=msg)
+            flash(msg, 'danger')
+            return redirect(url_for('teacher'))
+
+        # Save QuizQuestions to the database
+        for j, q_data in enumerate(all_quiz_questions):
+            quiz_question = QuizQuestion(
+                quiz_id=new_quiz.id,
+                question=q_data['question'],
+                option_a=q_data['options'][0],
+                option_b=q_data['options'][1],
+                option_c=q_data['options'][2],
+                option_d=q_data['options'][3],
+                correct_answer=q_data['answer'],
+                category=q_data['category'],
+                level=q_data['level'],
+                source='BANK', # Source is now always BANK
+                order_index=j
+            )
+            db.session.add(quiz_question)
+
+        db.session.commit()
+        
         quiz_progress.update({
+            'current': len(categories_to_process),
             'status': 'completed',
-            'message': 'Quiz generated successfully!'
+            'message': 'Quiz generated successfully from bank!'
         })
-
-        source = "AI-generated" if use_ai else "Template-based"
-        print(f"✅ {source} quiz saved successfully! Total: {len(quiz_questions)} questions")
-        msg = f'{source} quiz created successfully! 📝 Total questions: {len(quiz_questions)} 😃'
+        
+        success_msg = create_generation_report(generation_stats, generation_stats['from_bank'])
+        
+        print(f"✅ Quiz completed: {generation_stats['from_bank']} total questions from bank")
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify(success=True, message=msg)
-        flash(msg, 'success')
-    except IOError as e:
-        quiz_progress['status'] = 'error'
-        print(f"Error saving quiz: {e}")
-        msg = 'Error saving quiz. Please try again.'
+            return jsonify(success=True, message=success_msg)
+        flash(success_msg, 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        quiz_progress.update({
+            'status': 'error',
+            'message': f'An error occurred: {str(e)}'
+        })
+        print(f"Error creating quiz: {e}")
+        msg = '❌ Error creating quiz. Please try again.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message=msg)
         flash(msg, 'danger')
 
     return redirect(url_for('teacher'))
 
-def load_questions_from_json(key, level, num_questions):
-    """Load questions from existing JSON files."""
-    level_folder = level.lower().replace(' ', '_')
-    file_key = 'computerscience' if key == 'cs' else key
-    exam_path = os.path.join('data', 'exams', 'precreated', level_folder, f'{file_key}.json')
+def load_questions_from_bank(subject, level, num_needed):
+    """Load questions from the QuestionBank table in the database."""
+    import random
     
     try:
-        if os.path.exists(exam_path):
-            with open(exam_path, 'r', encoding='utf-8') as f:
-                questions = json.load(f)
-            random.shuffle(questions)
-            return questions[:num_questions]
-    except (json.JSONDecodeError, IOError) as e:
-        print(f"Error loading questions from {exam_path}: {e}")
+        # Query the QuestionBank table
+        # Ensure 'subject' and 'level' parameters match the values in your QuestionBank table
+        # For example, if your table stores 'Mathematics' as subject, pass that directly.
+        # If your table uses different casing or naming, adjust here or in the calling function.
+        
+        # Fetch all matching questions first
+        all_matching_questions = QuestionBank.query.filter_by(
+            category=subject, 
+            level=level
+        ).all()
+        
+        if not all_matching_questions:
+            print(f"No questions found in DB for {subject} - {level}")
+            return []
+
+        # Shuffle them to get a random selection
+        random.shuffle(all_matching_questions)
+        
+        # Select the number needed
+        selected_db_questions = all_matching_questions[:num_needed]
+        
+        formatted_questions = []
+        for i, db_q in enumerate(selected_db_questions):
+            # Adapt this mapping based on your QuestionBank model fields
+            formatted_q = {
+                'id': f"BANK-{db_q.id}", # Or use db_q.id directly if preferred
+                'question': db_q.question, # CAMBIADO DE db_q.question_text
+                'options': [
+                    db_q.option_a, 
+                    db_q.option_b, 
+                    db_q.option_c, 
+                    db_q.option_d
+                ], # Assuming these field names
+                'answer': db_q.correct_answer, # Assuming field name
+                'category': db_q.category,
+                'level': db_q.level,
+                'source': 'BANK' # Source is always BANK now
+            }
+            formatted_questions.append(formatted_q)
+        
+        print(f"Loaded {len(formatted_questions)} questions from DB for {subject} - {level}")
+        return formatted_questions
+        
+    except Exception as e:
+        print(f"Error loading questions from database bank: {e}")
+        # Consider how to handle DB errors, e.g., logging, re-raising
     
     return []
+
+def create_generation_report(stats, total_questions):
+    """Create detailed generation report (simplified for bank-only)."""
+    bank_count = stats['from_bank']
+    failed = stats.get('failed_categories', []) # Ensure 'failed_categories' key exists
+    
+    # Calculate percentages
+    bank_percent = 100 if total_questions > 0 else 0 # Simplified as all are from bank
+    
+    report = f"""✅ <strong>Quiz Generated Successfully!</strong><br><br>
+📊 <strong>Generation Report:</strong><br>
+📚 From Bank: <strong>{bank_count}</strong> questions ({bank_percent}%)<br>
+📝 Total Questions: <strong>{total_questions}</strong><br>"""
+    
+    if failed:
+        report += f"<br>⚠️ Categories with no questions found: {', '.join(failed)}"
+    
+    return report
+# ---------- Exam Management Routes ---------- #
 
 @app.route('/exam_teacher')
 @teacher_required
 def exam_teacher():
     """Display quiz preview for teacher."""
     teacher = get_teacher()
-    quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
-    quiz_questions = read_json(quiz_path)
+    
+    # Get active quiz from database
+    quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
+    quiz_questions = []
+    
+    if quiz:
+        quiz_questions = [q.to_dict() for q in quiz.questions]
     
     return render_template('exam_teacher.html', 
                          teacher_name=teacher.name, 
@@ -718,28 +790,27 @@ def delete_quiz():
     teacher = get_teacher()
     
     try:
-        # Delete the generated quiz file
-        quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
+        # Find and delete quiz
+        quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
         
-        if os.path.exists(quiz_path):
-            os.remove(quiz_path)
+        if quiz:
+            db.session.delete(quiz)  # Cascade will delete QuizQuestions
+            db.session.commit()
             
-            # Handle AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify(success=True, message="Quiz deleted successfully! 🗑️")
             
             flash('Quiz deleted successfully! 🗑️', 'success')
         else:
-            # Handle AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify(success=False, message="No quiz found to delete.")
             
             flash('No quiz found to delete.', 'warning')
             
     except Exception as e:
+        db.session.rollback()
         print(f"Error deleting quiz: {e}")
         
-        # Handle AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify(success=False, message="Error deleting quiz. Please try again.")
         
@@ -808,9 +879,10 @@ def quiz():
                 "total": result_db.total
             }
         else:
-            # Load quiz questions if not completed
-            quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
-            quiz_questions = read_json(quiz_path)
+            # Load quiz questions from database
+            quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
+            if quiz:
+                quiz_questions = [q.to_dict() for q in quiz.questions]
 
     return render_template(
         'quiz.html',
@@ -836,25 +908,22 @@ def submit_quiz():
     if existing_result:
         return jsonify(success=False, message="You have already completed this quiz. You cannot retake it.")
 
-    # Load quiz questions
-    quiz_path = os.path.join('data', 'exams', 'generated', f'quiz_{teacher.username}.json')
-    quiz_questions = read_json(quiz_path)
-    
-    if not quiz_questions:
+    # Load quiz questions from database
+    quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
+    if not quiz:
         return jsonify(success=False, message="Quiz not found.")
+    
+    quiz_questions = [q.to_dict() for q in quiz.questions]
 
     try:
         # Process answers and calculate scores
         scores = calculate_quiz_scores(quiz_questions, request.form)
         
-        # Save to database
+        # Save to database only
         result_data = create_result_data(student, scores)
         new_result = Result(**result_data)
         db.session.add(new_result)
         db.session.commit()
-
-        # Also save to JSON file for backward compatibility
-        save_result_to_json(teacher.username, result_data)
 
         summary = format_result_summary(result_data)
         return jsonify(success=True, 
@@ -911,18 +980,6 @@ def create_result_data(student, scores):
         'computer_science': f"{categories['Computer Science']['correct']}/{categories['Computer Science']['total']}",
         'total': f"{scores['total_correct']}/{scores['total_questions']}"
     }
-
-def save_result_to_json(teacher_username, result_data):
-    """Save result to JSON file for backward compatibility."""
-    results_path = get_json_path('data/results', f'{teacher_username}.json')
-    results_data = read_json(results_path)
-    
-    # Add ID field for JSON compatibility
-    result_with_id = dict(result_data)
-    result_with_id['id'] = result_data['student_id']
-    
-    results_data.append(result_with_id)
-    write_json(results_path, results_data)
 
 def format_result_summary(result_data):
     """Format result summary for display."""
