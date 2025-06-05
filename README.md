@@ -72,12 +72,20 @@ AI QuizLab is an educational web application that combines pre-built question ba
     ```bash
     createdb ai_quizlab
     python3 app.py  # Creates tables automatically
+    
+    # Import 350 sample questions (recommended)
+    python3 migrate_questions.py
     ```
 
 6. **Install and start Ollama:**
     ```bash
     # Install Ollama (visit https://ollama.ai for instructions)
-    ollama serve  # Start Ollama service
+    
+    # Pull the required model (phi3:mini - lightweight and efficient)
+    ollama pull phi3:mini
+    
+    # Start Ollama service
+    ollama serve  # Start Ollama service on localhost:11434
     ```
 
 7. **Access the application:**
@@ -88,15 +96,30 @@ AI QuizLab is an educational web application that combines pre-built question ba
 ## 🤖 AI Features
 
 ### Ollama Integration
-- **Automatic question generation** for any subject and difficulty level
+- **Automatic question generation** using **phi3:mini** model for optimal performance
 - **Fallback system** to question bank if AI is unavailable
 - **Mixed source quizzes** combining AI and pre-built questions
 - **Real-time generation** with progress feedback
 
 ### Question Sources
-- 🤖 **AI Generated:** Dynamic questions created by Ollama
+- 🤖 **AI Generated:** Dynamic questions created by Ollama (phi3:mini)
 - 📚 **Question Bank:** Pre-built questions stored in database
 - 🔄 **Hybrid:** Combination of both sources in single quiz
+
+---
+
+## 📖 Documentation
+
+For comprehensive guides and detailed information, visit our documentation:
+
+📚 **[Complete Documentation](docs/README.md)** - Full documentation index
+
+### Quick Links
+- 🛠️ **[Installation Guide](docs/installation.md)** - Detailed setup instructions
+- 👥 **[User Guide](docs/user-guide.md)** - How to use the platform for teachers and students  
+- 🤖 **[AI Integration](docs/ai-integration.md)** - Ollama setup and configuration
+- 🔧 **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- 📡 **[API Reference](docs/api-reference.md)** - Technical documentation and endpoints
 
 ---
 
@@ -138,7 +161,13 @@ ai-quizlab/
 ├── requirements.txt       # Dependencies
 ├── templates/             # HTML templates
 ├── static/               # CSS, JS, assets
-└── docs/                 # Documentation (coming soon)
+└── docs/                 # Complete documentation
+    ├── README.md          # Documentation index
+    ├── installation.md    # Setup guide
+    ├── user-guide.md      # Usage instructions
+    ├── ai-integration.md  # AI configuration
+    ├── troubleshooting.md # Problem solving
+    └── images/           # Screenshots and diagrams
 ```
 
 ---
@@ -174,13 +203,15 @@ exp,name,group
 
 **Ollama Connection Issues:**
 - Ensure Ollama is running on `localhost:11434`
-- Check if required models are installed
+- Verify `phi3:mini` model is installed: `ollama list`
 - Fallback to question bank if AI unavailable
 
 **Database Issues:**
 - Verify PostgreSQL is running
 - Check DATABASE_URL configuration
 - Run `python debug_questions.py` to populate sample data
+
+📋 **For detailed troubleshooting:** See [Troubleshooting Guide](docs/troubleshooting.md)
 
 ---
 
