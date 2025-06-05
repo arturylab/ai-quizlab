@@ -6,43 +6,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // ============================================================================
-    // STUDENT QUIZ FUNCTIONALITY
-    // ============================================================================
-    
-    /**
-     * Handle student quiz submission via AJAX
-     */
-    const form = document.getElementById('studentQuizForm');
-    if (form) {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(form);
-            
-            fetch("/submit_quiz", {
-                method: "POST",
-                body: formData,
-                headers: {'X-Requested-With': 'XMLHttpRequest'}
-            })
-            .then(response => response.json())
-            .then(data => {
-                const resultDiv = document.getElementById('quizResult');
-                if (data.success) {
-                    // Show success message and results summary
-                    resultDiv.innerHTML = `<div style="color:green;font-weight:bold;">${data.message}</div><br>${data.summary}`;
-                    form.style.display = 'none';
-                    
-                    // Show logout option after quiz completion
-                    const logoutDiv = document.getElementById('logoutAfterQuiz');
-                    if (logoutDiv) logoutDiv.style.display = 'block';
-                } else {
-                    resultDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
-                }
-            });
-        });
-    }
-
-    // ============================================================================
-    // STUDENT UPLOAD FUNCTIONALITY
+    // STUDENT UPLOAD FUNCTIONALITY (Section 1 in teacher.html)
     // ============================================================================
     
     /**
@@ -101,206 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ============================================================================
-    // QUIZ CREATION FUNCTIONALITY
-    // ============================================================================
-    
-    /**
-     * Handle quiz creation with real-time progress tracking
-     */
-    const createQuizForm = document.getElementById('createQuizForm');
-    if (createQuizForm) {
-        createQuizForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            const messageDiv = document.getElementById('quizMessage');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            
-            // Validate that at least one category is selected
-            const totalCategories = getTotalCategories(formData);
-            if (totalCategories === 0) {
-                messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
-                return;
-            }
-            
-            // Initialize progress tracking UI
-            messageDiv.innerHTML = '<div style="color:blue;">📚 Generating quiz from question bank...</div>';
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressText.textContent = 'Starting generation...';
-            
-            // Start real-time progress monitoring
-            const progressInterval = startProgressTracking(progressBar, progressText);
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Clean up progress tracking
-                clearInterval(progressInterval);
-                progressBar.style.width = '100%';
-                progressText.textContent = 'Completed!';
-                
-                // Show final result after brief delay
-                setTimeout(() => {
-                    progressContainer.style.display = 'none';
-                    
-                    if (data.success) {
-                        messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
-                    } else {
-                        messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
-                    }
-                }, 1000);
-            })
-            .catch(error => {
-                clearInterval(progressInterval);
-                progressContainer.style.display = 'none';
-                console.error('Create quiz error:', error);
-                messageDiv.innerHTML = '<div style="color:red;">Error creating quiz. Please try again.</div>';
-            });
-        });
-    }
-
-    /**
-     * Real-time progress tracking for quiz generation
-     * Polls the server every 500ms for progress updates
-     */
-    function startProgressTracking(progressBar, progressText) {
-        return setInterval(() => {
-            fetch('/quiz_progress', {
-                method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'processing') {
-                    // Update progress bar (cap at 95% until completion)
-                    const percentage = Math.min(data.percentage, 95);
-                    progressBar.style.width = percentage + '%';
-                    progressText.textContent = data.message || 'Processing...';
-                } else if (data.status === 'completed') {
-                    progressBar.style.width = '100%';
-                    progressText.textContent = 'Finalizing...';
-                } else if (data.status === 'error') {
-                    progressBar.style.width = '100%';
-                    progressText.textContent = 'Error occurred';
-                }
-            })
-            .catch(error => {
-                console.log('Progress tracking error:', error);
-            });
-        }, 500);
-    }
-
-    /**
-     * Count how many quiz categories have questions > 0
-     */
-    function getTotalCategories(formData) {
-        let count = 0;
-        const categories = ['math', 'physics', 'chemistry', 'biology', 'cs'];
-        
-        categories.forEach(category => {
-            const numQuestions = formData.get(`num_questions_${category}`);
-            if (numQuestions && parseInt(numQuestions) > 0) {
-                count++;
-            }
-        });
-        
-        return count;
-    }
-
-    // ============================================================================
-    // TEACHER PROFILE EDITING
-    // ============================================================================
-    
-    /**
-     * Handle profile field editing functionality
-     */
-    const editNameBtn = document.getElementById('editNameBtn');
-    const editSchoolBtn = document.getElementById('editSchoolBtn');
-    const editPasswordBtn = document.getElementById('editPasswordBtn');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-
-    if (editNameBtn) {
-        editNameBtn.addEventListener('click', function() {
-            toggleFieldEdit('nameCell', 'name', 'Name');
-        });
-    }
-
-    if (editSchoolBtn) {
-        editSchoolBtn.addEventListener('click', function() {
-            toggleFieldEdit('schoolCell', 'school', 'School');
-        });
-    }
-
-    if (editPasswordBtn) {
-        editPasswordBtn.addEventListener('click', function() {
-            const passwordRow = document.getElementById('passwordRow');
-            const passwordEditRow = document.getElementById('passwordEditRow');
-            
-            if (passwordRow && passwordEditRow) {
-                passwordRow.style.display = 'none';
-                passwordEditRow.style.display = 'table-row';
-            }
-        });
-    }
-
-    if (cancelEditBtn) {
-        cancelEditBtn.addEventListener('click', function() {
-            // Reset all editing states
-            resetFieldEdit('nameCell');
-            resetFieldEdit('schoolCell');
-            
-            // Hide password edit interface
-            const passwordRow = document.getElementById('passwordRow');
-            const passwordEditRow = document.getElementById('passwordEditRow');
-            const passwordInput = document.getElementById('passwordInput');
-            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-            
-            if (passwordRow && passwordEditRow) {
-                passwordRow.style.display = 'table-row';
-                passwordEditRow.style.display = 'none';
-            }
-            
-            if (passwordInput) passwordInput.value = '';
-            if (confirmPasswordInput) confirmPasswordInput.value = '';
-        });
-    }
-
-    /**
-     * Toggle a field between display and edit mode
-     */
-    function toggleFieldEdit(cellId, fieldName, placeholder) {
-        const cell = document.getElementById(cellId);
-        if (!cell || cell.querySelector('input')) return;
-
-        const currentValue = cell.textContent;
-        cell.innerHTML = `<input type="text" name="${fieldName}" value="${currentValue}" placeholder="${placeholder}" style="width:100%; padding:4px;">`;
-        
-        const input = cell.querySelector('input');
-        if (input) {
-            input.focus();
-            input.select();
-        }
-    }
-
-    /**
-     * Reset a field from edit mode to display mode
-     */
-    function resetFieldEdit(cellId) {
-        const cell = document.getElementById(cellId);
-        if (!cell) return;
-
-        const originalValue = cell.getAttribute('data-original');
-        cell.textContent = originalValue;
-    }
-
-    // ============================================================================
-    // STUDENT TABLE MANAGEMENT
+    // STUDENT TABLE MANAGEMENT (Section 2 in teacher.html)
     // ============================================================================
     
     /**
@@ -438,7 +203,155 @@ document.addEventListener('DOMContentLoaded', function() {
     attachStudentEventListeners();
 
     // ============================================================================
-    // QUIZ RESULT MANAGEMENT
+    // QUIZ CREATION FUNCTIONALITY (Section 3 in teacher.html)
+    // ============================================================================
+    
+    /**
+     * Handle checkbox changes to update AI status indicators
+     */
+    function initializeAiStatusIndicators() {
+        const categories = ['math', 'physics', 'chemistry', 'biology', 'cs'];
+        
+        categories.forEach(category => {
+            const checkbox = document.getElementById(`use_ai_${category}`);
+            const statusSpan = document.querySelector(`.ai-status-${category}`);
+            
+            if (checkbox && statusSpan) {
+                // Set initial status
+                updateAiStatus(checkbox, statusSpan);
+                
+                // Add change listener
+                checkbox.addEventListener('change', function() {
+                    updateAiStatus(this, statusSpan);
+                });
+            }
+        });
+    }
+
+    /**
+     * Update AI status indicator based on checkbox state
+     */
+    function updateAiStatus(checkbox, statusSpan) {
+        if (checkbox.checked) {
+            statusSpan.textContent = '🤖 AI';
+            statusSpan.style.color = '#ff6b35';
+            statusSpan.style.fontWeight = 'bold';
+        } else {
+            statusSpan.textContent = '📚 Bank';
+            statusSpan.style.color = '#1976d2';
+            statusSpan.style.fontWeight = 'normal';
+        }
+    }
+
+    /**
+     * Handle unified quiz creation
+     */
+    const createQuizBtn = document.getElementById('createQuizBtn');
+    if (createQuizBtn) {
+        createQuizBtn.addEventListener('click', function() {
+            handleUnifiedQuizCreation();
+        });
+    }
+
+    /**
+     * Simplified quiz creation handler - processes both AI and bank questions
+     */
+    function handleUnifiedQuizCreation() {
+        const form = document.getElementById('quizCreationForm');
+        const formData = new FormData(form);
+        const messageDiv = document.getElementById('quizMessage');
+        const createBtn = document.getElementById('createQuizBtn');
+
+        // Analyze what categories are selected and how
+        const analysis = analyzeQuizSelection(formData);
+        
+        if (analysis.totalQuestions === 0) {
+            messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
+            return;
+        }
+
+        // Disable button and show loading message
+        createBtn.disabled = true;
+        createBtn.textContent = '⏳ Creating Quiz...';
+        
+        const initialMessage = getInitialMessage(analysis);
+        messageDiv.innerHTML = `<div style="color:blue;">${initialMessage}</div>`;
+
+        // Send request to unified endpoint
+        fetch('/create_unified_quiz', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Re-enable button
+            createBtn.disabled = false;
+            createBtn.textContent = 'Create Quiz';
+
+            if (data.success) {
+                messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
+            } else {
+                messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            // Re-enable button
+            createBtn.disabled = false;
+            createBtn.textContent = 'Create Quiz';
+            
+            console.error('Quiz creation error:', error);
+            messageDiv.innerHTML = '<div style="color:red;">Error creating quiz. Please try again.</div>';
+        });
+    }
+
+    /**
+     * Analyze quiz selection to determine what needs to be done
+     */
+    function analyzeQuizSelection(formData) {
+        const categories = ['math', 'physics', 'chemistry', 'biology', 'cs'];
+        const analysis = {
+            totalQuestions: 0,
+            hasAI: false,
+            hasBank: false
+        };
+
+        categories.forEach(category => {
+            const numQuestions = parseInt(formData.get(`num_questions_${category}`)) || 0;
+            const useAI = formData.get(`use_ai_${category}`) === 'on';
+
+            if (numQuestions > 0) {
+                analysis.totalQuestions += numQuestions;
+                
+                if (useAI) {
+                    analysis.hasAI = true;
+                } else {
+                    analysis.hasBank = true;
+                }
+            }
+        });
+
+        return analysis;
+    }
+
+    /**
+     * Get initial message based on what's being processed
+     */
+    function getInitialMessage(analysis) {
+        if (analysis.hasAI && analysis.hasBank) {
+            return '🔄 Creating quiz with AI generation and question bank...';
+        } else if (analysis.hasAI) {
+            return '🤖 Generating quiz with AI...';
+        } else {
+            return '📚 Creating quiz from question bank...';
+        }
+    }
+
+    // Initialize AI status indicators when page loads
+    initializeAiStatusIndicators();
+
+    // ============================================================================
+    // QUIZ RESULT MANAGEMENT (Section 4 - Statistics in teacher.html)
     // ============================================================================
     
     /**
@@ -467,7 +380,93 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============================================================================
-    // QUIZ DELETION FUNCTIONALITY
+    // TEACHER PROFILE EDITING (Section 5 - Menu/Profile in teacher.html)
+    // ============================================================================
+    
+    /**
+     * Handle profile field editing functionality
+     */
+    const editNameBtn = document.getElementById('editNameBtn');
+    const editSchoolBtn = document.getElementById('editSchoolBtn');
+    const editPasswordBtn = document.getElementById('editPasswordBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', function() {
+            toggleFieldEdit('nameCell', 'name', 'Name');
+        });
+    }
+
+    if (editSchoolBtn) {
+        editSchoolBtn.addEventListener('click', function() {
+            toggleFieldEdit('schoolCell', 'school', 'School');
+        });
+    }
+
+    if (editPasswordBtn) {
+        editPasswordBtn.addEventListener('click', function() {
+            const passwordRow = document.getElementById('passwordRow');
+            const passwordEditRow = document.getElementById('passwordEditRow');
+            
+            if (passwordRow && passwordEditRow) {
+                passwordRow.style.display = 'none';
+                passwordEditRow.style.display = 'table-row';
+            }
+        });
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            // Reset all editing states
+            resetFieldEdit('nameCell');
+            resetFieldEdit('schoolCell');
+            
+            // Hide password edit interface
+            const passwordRow = document.getElementById('passwordRow');
+            const passwordEditRow = document.getElementById('passwordEditRow');
+            const passwordInput = document.getElementById('passwordInput');
+            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+            
+            if (passwordRow && passwordEditRow) {
+                passwordRow.style.display = 'table-row';
+                passwordEditRow.style.display = 'none';
+            }
+            
+            if (passwordInput) passwordInput.value = '';
+            if (confirmPasswordInput) confirmPasswordInput.value = '';
+        });
+    }
+
+    /**
+     * Toggle a field between display and edit mode
+     */
+    function toggleFieldEdit(cellId, fieldName, placeholder) {
+        const cell = document.getElementById(cellId);
+        if (!cell || cell.querySelector('input')) return;
+
+        const currentValue = cell.textContent;
+        cell.innerHTML = `<input type="text" name="${fieldName}" value="${currentValue}" placeholder="${placeholder}" style="width:100%; padding:4px;">`;
+        
+        const input = cell.querySelector('input');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }
+
+    /**
+     * Reset a field from edit mode to display mode
+     */
+    function resetFieldEdit(cellId) {
+        const cell = document.getElementById(cellId);
+        if (!cell) return;
+
+        const originalValue = cell.getAttribute('data-original');
+        cell.textContent = originalValue;
+    }
+
+    // ============================================================================
+    // QUIZ DELETION FUNCTIONALITY (Used in exam_teacher.html)
     // ============================================================================
     
     /**
@@ -507,6 +506,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     messageDiv.innerHTML = '<div style="color:red;">Error deleting quiz. Please try again.</div>';
                 });
             }
+        });
+    }
+
+    // ============================================================================
+    // STUDENT QUIZ FUNCTIONALITY (Used in quiz.html)
+    // ============================================================================
+    
+    /**
+     * Handle student quiz submission via AJAX
+     */
+    const form = document.getElementById('studentQuizForm');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            
+            fetch("/submit_quiz", {
+                method: "POST",
+                body: formData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('quizResult');
+                if (data.success) {
+                    // Show success message and results summary
+                    resultDiv.innerHTML = `<div style="color:green;font-weight:bold;">${data.message}</div><br>${data.summary}`;
+                    form.style.display = 'none';
+                    
+                    // Show logout option after quiz completion
+                    const logoutDiv = document.getElementById('logoutAfterQuiz');
+                    if (logoutDiv) logoutDiv.style.display = 'block';
+                } else {
+                    resultDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
+                }
+            });
         });
     }
 });

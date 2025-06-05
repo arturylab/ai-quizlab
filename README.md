@@ -1,45 +1,35 @@
 # AI QuizLab 🤖
 
-AI QuizLab is an educational web application designed to help students and teachers manage and participate in science quizzes. The platform supports multiple science subjects, user management for teachers and students, and CSV-based student list uploads.
+AI QuizLab is an educational web application that combines pre-built question banks with AI-powered question generation using Ollama. The platform helps teachers create dynamic science quizzes and manage student assessments across multiple subjects.
 
 ---
 
 ## ✨ Features
 
-- 🔐 **Teacher and Student Authentication:** Secure login system for both roles with session timeouts for enhanced security.
+- 🔐 **Teacher and Student Authentication:** Secure login system with session management.
 - 🧑‍🏫 **Teacher Dashboard:** 
-  - 📤 Upload student lists via CSV files with automatic credential generation.
-  - 📥 Download student credentials as CSV (passwords available only after upload or reset).
-  - 📝 Create and manage quizzes by subject and difficulty level.
-  - 🎲 Random question selection for each exam session.
-  - 👁️ View comprehensive student lists and performance statistics.
-  - ⚙️ Edit profile information (name, school, password) from dedicated profile page.
-  - 🔄 Reset student passwords when needed.
+  - 📤 Upload student lists via CSV with automatic credential generation.
+  - 🤖 **AI Quiz Generation:** Create questions using Ollama AI models.
+  - 📚 **Question Bank:** Use pre-built questions from database.
+  - 🔄 **Hybrid Quizzes:** Mix AI-generated and bank questions.
+  - 📊 View student performance and quiz statistics.
+  - ⚙️ Edit profile and manage student accounts.
 - 👨‍🎓 **Student Dashboard:** 
-  - 🧪 Access science quizzes across multiple subjects.
-  - ⏰ Timed quiz sessions with automatic logout for security.
-  - 📊 Track quiz progress, scores, and performance history.
-  - 🎯 Subject-specific quiz categories and difficulty levels.
-- 📂 **CSV Data Management:** Seamless import and export of student data.
-- 🔒 **Advanced Security:** 
-  - Password hashing with industry-standard algorithms.
-  - Session management with timeout protection.
-  - Secure credential handling (plain passwords shown only once).
-- 💬 **User Experience:** Flash messaging system for clear feedback on all operations.
-- 🎨 **Responsive Design:** Modern, mobile-friendly interface.
+  - 🧪 Take science quizzes across multiple subjects.
+  - 📈 Track scores and performance by category.
+  - 🎯 Subject-specific assessments (Math, Physics, Chemistry, Biology, CS).
+- 📂 **CSV Data Management:** Import/export student data and results.
+- 🔒 **Security:** Password hashing, session timeouts, and secure credential handling.
 
 ---
 
 ## 🛠️ Technology Stack
 
-- 🐍 **Backend:** Python 3.8+
-- ⚗️ **Web Framework:** Flask with extensions
-- 🗄️ **ORM:** Flask-SQLAlchemy
-- 🐘 **Database:** PostgreSQL
-- 🖥️ **Frontend:** HTML5, CSS3
-- 💻 **Client-side:** JavaScript (ES6+)
-- 📦 **Package Management:** pip
-- 🔧 **Environment Management:** python-dotenv
+- 🐍 **Backend:** Python 3.8+ with Flask
+- 🗄️ **Database:** PostgreSQL with SQLAlchemy ORM
+- 🤖 **AI:** Ollama for question generation
+- 🖥️ **Frontend:** HTML5, CSS3, JavaScript
+- 📦 **Package Management:** pip and requirements.txt
 
 ---
 
@@ -47,10 +37,9 @@ AI QuizLab is an educational web application designed to help students and teach
 
 ### Prerequisites
 
-Make sure you have the following installed:
 - Python 3.8 or higher
 - PostgreSQL 12 or higher
-- pip (Python package manager)
+- **Ollama** installed and running on `localhost:11434`
 - Git
 
 ### Installation
@@ -61,37 +50,53 @@ Make sure you have the following installed:
     cd ai-quizlab
     ```
 
-2. **Create and activate a virtual environment:**
+2. **Create virtual environment:**
     ```bash
     python3 -m venv venv
-    source venv/bin/activate  # On macOS/Linux
-    # or
-    venv\Scripts\activate     # On Windows
+    source venv/bin/activate  # macOS/Linux
+    # or venv\Scripts\activate  # Windows
     ```
 
-3. **Install required dependencies:**
+3. **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
 4. **Set up environment variables:**
-   Create a `.env` file in the project root directory:
     ```env
-    SECRET_KEY=your_super_secret_key_here_change_this_in_production
+    SECRET_KEY=your_secret_key_here
     DATABASE_URL=postgresql://username:password@localhost:5432/ai_quizlab
     ```
 
-5. **Set up the database:**
+5. **Set up database:**
     ```bash
-    # Create the database in PostgreSQL first
     createdb ai_quizlab
-    
-    # Then run the application to auto-create tables
-    python3 app.py
+    python3 app.py  # Creates tables automatically
     ```
 
-6. **Access the application:**
-   Open your browser and navigate to `http://localhost:5001`
+6. **Install and start Ollama:**
+    ```bash
+    # Install Ollama (visit https://ollama.ai for instructions)
+    ollama serve  # Start Ollama service
+    ```
+
+7. **Access the application:**
+   Navigate to `http://localhost:5001`
+
+---
+
+## 🤖 AI Features
+
+### Ollama Integration
+- **Automatic question generation** for any subject and difficulty level
+- **Fallback system** to question bank if AI is unavailable
+- **Mixed source quizzes** combining AI and pre-built questions
+- **Real-time generation** with progress feedback
+
+### Question Sources
+- 🤖 **AI Generated:** Dynamic questions created by Ollama
+- 📚 **Question Bank:** Pre-built questions stored in database
+- 🔄 **Hybrid:** Combination of both sources in single quiz
 
 ---
 
@@ -99,39 +104,23 @@ Make sure you have the following installed:
 
 ### For Teachers 🧑‍🏫
 
-1. **Registration & Login:**
-   - Navigate to `/register` to create a teacher account
-   - Login at `/login` with your credentials
+1. **Create Quizzes:**
+   - Choose subjects (Math, Physics, Chemistry, Biology, Computer Science)
+   - Select difficulty levels (Elementary, Middle School, High School)
+   - Toggle between AI generation and question bank per category
+   - Generate mixed-source quizzes
 
 2. **Student Management:**
-   - Upload CSV files with student information (Name, Email format)
-   - Download generated credentials immediately after upload
-   - View all students in your database
-   - Reset student passwords when necessary
-
-3. **Quiz Management:**
-   - Create quizzes by selecting subjects and difficulty levels
-   - Questions are randomly selected for each student session
-   - Monitor student performance and statistics
-
-4. **Profile Management:**
-   - Update your name, school affiliation, and password
-   - Access profile settings from the dashboard
+   - Upload CSV files with student data
+   - Download generated credentials
+   - Reset passwords and manage accounts
 
 ### For Students 👨‍🎓
 
-1. **Login:**
-   - Use credentials provided by your teacher
-   - Sessions automatically timeout for security
-
-2. **Taking Quizzes:**
-   - Select from available science subjects
-   - Complete timed quiz sessions
-   - View your scores and progress
-
-3. **Performance Tracking:**
-   - Review your quiz history
-   - Monitor improvement over time
+1. **Take Quizzes:**
+   - Login with provided credentials
+   - Complete science assessments
+   - View scores by subject category
 
 ---
 
@@ -139,93 +128,66 @@ Make sure you have the following installed:
 
 ```
 ai-quizlab/
-├── app.py              # Main Flask application and routes
-├── config.py           # Application configuration
-├── models.py           # Database models and schema
-├── requirements.txt    # Python dependencies
-├── .env                # Environment variables (not in repo)
-├── .gitignore          # Git ignore rules
-├── README.md           # Project documentation
-├── templates/          # Jinja2 HTML templates
-│   ├── base.html           # Base template
-│   ├── dashboard.html      # Main dashboard
-│   ├── login.html          # Login page
-│   ├── profile.html        # User profile page
-│   ├── quiz.html           # Quiz interface
-│   └── register.html       # Registration page
-├── static/             # Static assets
-│   ├── css/                # Stylesheets
-│   ├── js/                 # JavaScript files
-│   └── uploads/            # File upload directory
-└── migrations/         # Database migration scripts
+├── app.py                  # Main Flask application
+├── config.py              # Configuration settings
+├── models.py              # Database models
+├── utils.py               # Utility functions
+├── quiz_utils.py          # Quiz management utilities
+├── ai_quiz.py             # Ollama AI integration
+├── debug_questions.py     # Sample data seeder
+├── requirements.txt       # Dependencies
+├── templates/             # HTML templates
+├── static/               # CSS, JS, assets
+└── docs/                 # Documentation (coming soon)
 ```
 
 ---
 
 ## 🔧 Configuration
 
-### Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `SECRET_KEY` | Flask secret key for sessions | Yes | None |
-| `DATABASE_URL` | PostgreSQL connection string | Yes | None |
-
 ### CSV Upload Format
-
-When uploading student lists, use this CSV format:
 ```csv
 exp,name,group
 2001,Alice Walker,A
 2002,Brian Lee,A
 ```
 
+### Environment Variables
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SECRET_KEY` | Flask secret key | Yes |
+| `DATABASE_URL` | PostgreSQL connection | Yes |
+
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
-
-1. **Fork the repository**
-2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
-3. **Commit your changes:** `git commit -m 'Add amazing feature'`
-4. **Push to the branch:** `git push origin feature/amazing-feature`
-5. **Open a Pull Request`
-
-### Development Guidelines
-
-- Follow PEP 8 style guidelines
-- Write descriptive commit messages
-- Add tests for new features
-- Update documentation as needed
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ---
 
-## 🐛 Known Issues & Troubleshooting
+## 🐛 Troubleshooting
 
-### Common Issues
+**Ollama Connection Issues:**
+- Ensure Ollama is running on `localhost:11434`
+- Check if required models are installed
+- Fallback to question bank if AI unavailable
 
-1. **Database Connection Error:**
-   - Verify PostgreSQL is running
-   - Check DATABASE_URL in .env file
-   - Ensure database exists
-
-2. **CSV Upload Issues:**
-   - Verify CSV format matches expected structure
-   - Check file permissions
-
-3. **Session Timeout:**
-   - Normal security feature
-   - Re-login if session expires
-
+**Database Issues:**
+- Verify PostgreSQL is running
+- Check DATABASE_URL configuration
+- Run `python debug_questions.py` to populate sample data
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-
-**AI QuizLab** – Making science education interactive, engaging, and accessible! 🚀🔬
+**AI QuizLab** – Intelligent science education powered by AI! 🚀🔬🤖

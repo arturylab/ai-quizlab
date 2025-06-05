@@ -15,8 +15,13 @@ from utils import (
 )
 from quiz_utils import (
     load_questions_from_bank, create_generation_report, calculate_quiz_scores,
-    create_result_data, format_result_summary
+    create_result_data, format_result_summary, parse_ai_csv_to_quiz_questions
 )
+from ai_quiz import QuizGenerator
+
+# ============================================================================
+# APPLICATION INITIALIZATION
+# ============================================================================
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -26,10 +31,16 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# ---------- DECORATORS ---------- #
+# ============================================================================
+# AUTHENTICATION DECORATORS
+# ============================================================================
 
 def teacher_required(f):
-    """Decorator to ensure user is logged in as a teacher."""
+    """
+    Decorator to ensure user is logged in as a teacher.
+    
+    Returns JSON response for AJAX requests or redirects for normal requests.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'teacher_id' not in session:
@@ -41,7 +52,11 @@ def teacher_required(f):
     return decorated_function
 
 def student_required(f):
-    """Decorator to ensure user is logged in as a student."""
+    """
+    Decorator to ensure user is logged in as a student.
+    
+    Returns JSON response for AJAX requests or redirects for normal requests.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'student_id' not in session:
@@ -52,34 +67,51 @@ def student_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ---------- UTILITY FUNCTIONS ---------- #
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
 
 def get_teacher():
-    """Return the current logged-in teacher object."""
+    """
+    Retrieve the current logged-in teacher from the database.
+    
+    Returns:
+        Teacher: Teacher object if found, None otherwise
+    """
     teacher_id = session.get('teacher_id')
     if teacher_id:
         return db.session.get(Teacher, teacher_id)
     return None
 
 def get_student():
-    """Return the current logged-in student object."""
+    """
+    Retrieve the current logged-in student from the database.
+    
+    Returns:
+        Student: Student object if found, None otherwise
+    """
     student_id = session.get('student_id')
     if student_id:
         return db.session.get(Student, student_id)
     return None
 
-# ---------- ROUTES ---------- #
-
-# ---------- Authentication Routes ---------- #
+# ============================================================================
+# AUTHENTICATION ROUTES
+# ============================================================================
 
 @app.route('/')
 def index():
-    """Redirect to login page."""
+    """Main entry point - redirects to login page."""
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle user login for both teachers and students."""
+    """
+    Handle user authentication for both teachers and students.
+    
+    Attempts teacher login first, then student login if teacher fails.
+    Sets session data and redirects to appropriate dashboard.
+    """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
@@ -89,7 +121,7 @@ def login():
             flash('Username and password are required.', 'danger')
             return render_template('login.html')
 
-        # Try teacher login first
+        # Try teacher authentication first
         teacher = Teacher.query.filter_by(username=username).first()
         if teacher and teacher.check_password(password):
             session['teacher_id'] = teacher.id
@@ -97,7 +129,7 @@ def login():
             flash('Login successful! Welcome, teacher.', 'success')
             return redirect(url_for('teacher'))
 
-        # Try student login
+        # Try student authentication
         student = Student.query.filter_by(username=username).first()
         if student and student.check_password(password):
             session['student_id'] = student.id
@@ -105,23 +137,28 @@ def login():
             flash('Login successful! Welcome, student.', 'success')
             return redirect(url_for('student'))
 
-        # Invalid credentials
+        # Authentication failed
         flash('Invalid username or password.', 'danger')
 
     return render_template('login.html')
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    """Handle user logout and clear session."""
+    """Clear user session and redirect to login page."""
     session.clear()
     flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Handle teacher registration."""
+    """
+    Handle teacher registration with validation.
+    
+    Validates form data, checks for existing usernames/emails,
+    and creates new teacher account with hashed password.
+    """
     if request.method == 'POST':
-        # Extract form data
+        # Extract and sanitize form data
         form_data = {
             'name': request.form.get('name', '').strip(),
             'email': request.form.get('email', '').strip(),
@@ -152,7 +189,7 @@ def register():
             flash('Email already registered. Please use another.', 'danger')
             return render_template('register.html')
 
-        # Create new teacher
+        # Create new teacher account
         try:
             new_teacher = Teacher(
                 name=form_data['name'],
@@ -172,12 +209,18 @@ def register():
 
     return render_template('register.html')
 
-# ---------- Teacher Routes ---------- #
+# ============================================================================
+# TEACHER DASHBOARD ROUTES
+# ============================================================================
 
 @app.route('/teacher')
 @teacher_required
 def teacher():
-    """Teacher dashboard showing students and results."""
+    """
+    Teacher dashboard displaying students and exam results.
+    
+    Shows list of registered students and their quiz results.
+    """
     teacher = get_teacher()
     students_list = Student.query.filter_by(teacher_id=teacher.id).all()
     results_list = Result.query.join(Student, Result.student_id == Student.id)\
@@ -193,7 +236,11 @@ def teacher():
 @app.route('/profile', methods=['GET', 'POST'])
 @teacher_required
 def profile():
-    """Handle teacher profile management."""
+    """
+    Handle teacher profile management and updates.
+    
+    Allows teachers to update name, school, and password.
+    """
     teacher = get_teacher()
 
     if request.method == 'POST':
@@ -219,6 +266,7 @@ def profile():
             teacher.password = generate_password_hash(password)
             updated = True
 
+        # Save changes to database
         if updated:
             try:
                 db.session.commit()
@@ -232,20 +280,29 @@ def profile():
 
     return render_template('profile.html', teacher=teacher)
 
-# ---------- Student Management Routes ---------- #
+# ============================================================================
+# STUDENT MANAGEMENT ROUTES
+# ============================================================================
 
 @app.route('/upload', methods=['POST'])
 @teacher_required
 def upload_students():
-    """Handle CSV upload for student registration."""
+    """
+    Handle CSV file upload for bulk student registration.
+    
+    Processes CSV file containing student data (exp, name, group),
+    creates accounts with random passwords, and returns password list.
+    """
     file = request.files.get('file')
     if not file or not file.filename.endswith('.csv'):
+        error_msg = 'Invalid file. Please upload a CSV file.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify(success=False, message='Invalid file. Please upload a CSV file.')
-        flash('Invalid file. Please upload a CSV file.', 'danger')
+            return jsonify(success=False, message=error_msg)
+        flash(error_msg, 'danger')
         return redirect(url_for('teacher'))
 
     try:
+        # Process CSV file
         csvfile = file.stream.read().decode('utf-8').splitlines()
         reader = csv.DictReader(csvfile)
         passwords_to_deliver = []
@@ -259,7 +316,7 @@ def upload_students():
             group = row.get('group', '').strip()
             username = exp
 
-            # Validation
+            # Validation checks
             if not name:
                 errors.append(f"Row {idx}: Name is required.")
                 continue
@@ -285,8 +342,9 @@ def upload_students():
                 teacher_id=session['teacher_id']
             )
             db.session.add(student)
-            db.session.flush()  # Get the ID
+            db.session.flush()  # Get the ID without committing
 
+            # Store password for delivery
             passwords_to_deliver.append({
                 "ID": student.id,
                 "Name": name,
@@ -302,10 +360,11 @@ def upload_students():
                 "username": username
             })
 
+        # Commit all changes
         db.session.commit()
         session['passwords_to_deliver'] = passwords_to_deliver
 
-        # Handle AJAX request
+        # Return response based on request type
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             message = f"Successfully uploaded {len(students_added)} students!"
             if errors:
@@ -338,17 +397,22 @@ def upload_students():
 @app.route('/edit_student', methods=['POST'])
 @teacher_required
 def edit_student():
-    """Handle student information editing."""
+    """
+    Handle student information editing via AJAX.
+    
+    Updates student name and group after validation.
+    """
     data = request.get_json()
     student_id = data.get('id')
     new_name = data.get('name', '').strip()
     new_group = data.get('group', '').strip()
 
-    # Validation
+    # Validate input data
     if not student_id or not new_name or not new_group:
         return jsonify(success=False, message="All fields are required.")
 
     try:
+        # Find and authorize student
         student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
@@ -356,6 +420,7 @@ def edit_student():
         if student_db.teacher_id != session['teacher_id']:
             return jsonify(success=False, message="Not authorized to edit this student.")
 
+        # Update student information
         student_db.name = new_name
         student_db.group = new_group
         db.session.commit()
@@ -369,7 +434,11 @@ def edit_student():
 @app.route('/delete_student', methods=['POST'])
 @teacher_required
 def delete_student():
-    """Handle student deletion with validation."""
+    """
+    Handle student deletion with validation checks.
+    
+    Prevents deletion if student has already taken the exam.
+    """
     data = request.get_json()
     student_id = data.get('id')
 
@@ -377,6 +446,7 @@ def delete_student():
         return jsonify(success=False, message="Student ID is required.")
 
     try:
+        # Find and authorize student
         student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
@@ -384,11 +454,12 @@ def delete_student():
         if student_db.teacher_id != session['teacher_id']:
             return jsonify(success=False, message="Not authorized to delete this student.")
 
-        # Check if student has taken any exams
+        # Check if student has exam results
         has_result = Result.query.filter_by(student_id=student_id).first()
         if has_result:
             return jsonify(success=False, message="Cannot delete student who has already taken the exam.")
 
+        # Delete student
         db.session.delete(student_db)
         db.session.commit()
         return jsonify(success=True)
@@ -400,7 +471,11 @@ def delete_student():
 @app.route('/reset_student_password', methods=['POST'])
 @teacher_required
 def reset_student_password():
-    """Reset student password and return new password."""
+    """
+    Generate new random password for student account.
+    
+    Returns the new password for teacher to share with student.
+    """
     data = request.get_json()
     student_id = data.get('id')
 
@@ -408,6 +483,7 @@ def reset_student_password():
         return jsonify(success=False, message="Student ID is required.")
 
     try:
+        # Find and authorize student
         student_db = db.session.get(Student, int(student_id))
         if not student_db:
             return jsonify(success=False, message="Student not found.")
@@ -415,6 +491,7 @@ def reset_student_password():
         if student_db.teacher_id != session['teacher_id']:
             return jsonify(success=False, message="Not authorized to reset this student's password.")
 
+        # Generate new password
         new_password = generate_random_password(8)
         student_db.password = generate_password_hash(new_password)
         db.session.commit()
@@ -425,17 +502,24 @@ def reset_student_password():
         print(f"Reset password error: {e}")
         return jsonify(success=False, message="Error resetting password.")
 
-# ---------- File Download Routes ---------- #
+# ============================================================================
+# FILE DOWNLOAD ROUTES
+# ============================================================================
 
 @app.route('/download_passwords_csv')
 @teacher_required
 def download_passwords_csv():
-    """Download CSV file with student passwords."""
+    """
+    Download CSV file containing student passwords after bulk upload.
+    
+    Uses session data to provide immediate password download.
+    """
     passwords_to_deliver = session.pop('passwords_to_deliver', None)
     if not passwords_to_deliver:
         flash('No passwords to deliver. Please upload students first.', 'warning')
         return redirect(url_for('teacher'))
 
+    # Prepare CSV data
     data = [[s["ID"], s["Name"], s["Group"], s["Username"], s["Password"]] 
             for s in passwords_to_deliver]
     headers = ['ID', 'Name', 'Group', 'Username', 'Password']
@@ -445,7 +529,7 @@ def download_passwords_csv():
 @app.route('/download_students_csv')
 @teacher_required
 def download_students_csv():
-    """Download CSV file with student list."""
+    """Download CSV file with current student list for the teacher."""
     teacher = get_teacher()
     students_list = Student.query.filter_by(teacher_id=teacher.id).all()
 
@@ -458,7 +542,7 @@ def download_students_csv():
 @app.route('/download_results_csv')
 @teacher_required
 def download_results_csv():
-    """Download CSV file with exam results."""
+    """Download CSV file with exam results for the teacher's students."""
     teacher = get_teacher()
     results_list = Result.query.join(Student, Result.student_id == Student.id)\
         .filter(Student.teacher_id == teacher.id).all()
@@ -472,46 +556,21 @@ def download_results_csv():
     
     return create_csv_response(data, headers, filename)
 
-# ---------- Quiz Management Routes ---------- #
-
-# Global variable to track progress
-quiz_progress = {
-    'current': 0,
-    'total': 0,
-    'status': 'idle',
-    'message': '',
-    'teacher_id': None
-}
-
-@app.route('/quiz_progress')
-@teacher_required
-def get_quiz_progress():
-    """Get current quiz generation progress."""
-    teacher = get_teacher()
-    if quiz_progress['teacher_id'] == teacher.id:
-        return jsonify({
-            'progress': quiz_progress['current'],
-            'total': quiz_progress['total'],
-            'status': quiz_progress['status'],
-            'message': quiz_progress['message'],
-            'percentage': int((quiz_progress['current'] / quiz_progress['total'] * 100)) if quiz_progress['total'] > 0 else 0
-        })
-    else:
-        return jsonify({
-            'progress': 0,
-            'total': 0,
-            'status': 'idle',
-            'message': '',
-            'percentage': 0
-        })
+# ============================================================================
+# QUIZ GENERATION ROUTES
+# ============================================================================
 
 @app.route('/create_quiz', methods=['POST'])
 @teacher_required
 def create_quiz():
-    """Create quiz using questions from the question bank."""
-    global quiz_progress
+    """
+    Create quiz using questions from the question bank.
+    
+    Loads questions from database based on category and difficulty level.
+    """
     teacher = get_teacher()
     
+    # Define available categories
     categories = {
         'math': 'Mathematics',
         'physics': 'Physics', 
@@ -520,12 +579,14 @@ def create_quiz():
         'cs': 'Computer Science'
     }
     
+    # Process form data to determine requested categories
     categories_to_process = []
     for key, label in categories.items():
         num_questions_str = request.form.get(f'num_questions_{key}')
         if num_questions_str and num_questions_str.isdigit() and int(num_questions_str) > 0:
             categories_to_process.append((key, label, int(num_questions_str), request.form.get(f'level_{key}')))
     
+    # Validate that at least one category is selected
     if not categories_to_process:
         msg = 'Please select at least one category with questions > 0.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -533,29 +594,23 @@ def create_quiz():
         flash(msg, 'warning')
         return redirect(url_for('teacher'))
     
-    quiz_progress.update({
-        'current': 0,
-        'total': len(categories_to_process),
-        'status': 'processing',
-        'message': 'Starting quiz generation...',
-        'teacher_id': teacher.id
-    })
-    
     try:
+        # Clean up existing quizzes for this teacher
         existing_quizzes = Quiz.query.filter_by(teacher_id=teacher.id).all()
         for quiz in existing_quizzes:
             db.session.delete(quiz)
-        
         db.session.commit()
         
+        # Create new quiz
         new_quiz = Quiz(
             teacher_id=teacher.id,
             name=f"Quiz - {teacher.name}",
             description="Generated quiz from question bank"
         )
         db.session.add(new_quiz)
-        db.session.flush()
+        db.session.flush()  # Get quiz ID without committing
         
+        # Initialize statistics tracking
         generation_stats = {
             'from_bank': 0,
             'failed_categories': []
@@ -563,14 +618,11 @@ def create_quiz():
         
         all_quiz_questions = []
 
+        # Process each requested category
         for i, (key, label, num_q, level) in enumerate(categories_to_process):
-            quiz_progress.update({
-                'current': i,
-                'message': f'Processing {label}... ({i+1}/{len(categories_to_process)})'
-            })
-            
             print(f"Processing {label}: {num_q} questions from bank at level {level}")
             
+            # Load questions from database
             bank_questions = load_questions_from_bank(label, level, num_q)
             
             if not bank_questions:
@@ -581,22 +633,17 @@ def create_quiz():
             generation_stats['from_bank'] += len(bank_questions)
             
             print(f"✓ {label}: {len(bank_questions)} bank questions added.")
-            time.sleep(0.1)
         
+        # Validate that we have questions to create quiz
         if not all_quiz_questions:
-            db.session.rollback()
-            quiz_progress.update({
-                'status': 'error',
-                'message': 'Failed to load any questions from the bank.'
-            })
-            
+            db.session.rollback()            
             msg = '❌ Failed to generate quiz. No questions found in the bank for the selected criteria.'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify(success=False, message=msg)
             flash(msg, 'danger')
             return redirect(url_for('teacher'))
 
-        # Save QuizQuestions to the database
+        # Save questions to database as QuizQuestion objects
         for j, q_data in enumerate(all_quiz_questions):
             quiz_question = QuizQuestion(
                 quiz_id=new_quiz.id,
@@ -613,14 +660,10 @@ def create_quiz():
             )
             db.session.add(quiz_question)
 
+        # Commit all changes
         db.session.commit()
         
-        quiz_progress.update({
-            'current': len(categories_to_process),
-            'status': 'completed',
-            'message': 'Quiz generated successfully from bank!'
-        })
-        
+        # Generate success report
         success_msg = create_generation_report(generation_stats, generation_stats['from_bank'])
         
         print(f"✅ Quiz completed: {generation_stats['from_bank']} total questions from bank")
@@ -631,10 +674,6 @@ def create_quiz():
         
     except Exception as e:
         db.session.rollback()
-        quiz_progress.update({
-            'status': 'error',
-            'message': f'An error occurred: {str(e)}'
-        })
         print(f"Error creating quiz: {e}")
         msg = '❌ Error creating quiz. Please try again.'
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -643,12 +682,271 @@ def create_quiz():
 
     return redirect(url_for('teacher'))
 
-# ---------- Exam Management Routes ---------- #
+@app.route('/create_ai_quiz', methods=['POST'])
+@teacher_required
+def create_ai_quiz():
+    """
+    Create quiz using AI-generated questions directly.
+    
+    Uses Ollama AI to generate custom questions based on category and level.
+    """
+    teacher = get_teacher()
+    
+    # Define available categories
+    categories = {
+        'math': 'Mathematics',
+        'physics': 'Physics', 
+        'chemistry': 'Chemistry',
+        'biology': 'Biology',
+        'cs': 'Computer Science'
+    }
+    
+    # Process form data for AI generation
+    categories_to_process = []
+    for key, label in categories.items():
+        num_questions_str = request.form.get(f'ai_num_questions_{key}')
+        if num_questions_str and num_questions_str.isdigit() and int(num_questions_str) > 0:
+            level = request.form.get(f'ai_level_{key}')
+            categories_to_process.append((label, level, int(num_questions_str)))
+    
+    # Validate that at least one category is selected
+    if not categories_to_process:
+        msg = 'Please select at least one category with questions > 0 for AI generation.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=msg)
+        flash(msg, 'warning')
+        return redirect(url_for('teacher'))
+    
+    try:
+        # Initialize AI Quiz Generator
+        ai_generator = QuizGenerator()
+        
+        # Check Ollama connection before proceeding
+        if not ai_generator.check_ollama_connection():
+            msg = '❌ Cannot connect to Ollama. Please make sure Ollama is running and try again.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=False, message=msg)
+            flash(msg, 'danger')
+            return redirect(url_for('teacher'))
+        
+        # Clean up existing quizzes
+        existing_quizzes = Quiz.query.filter_by(teacher_id=teacher.id).all()
+        for quiz in existing_quizzes:
+            db.session.delete(quiz)
+        db.session.commit()
+        
+        # Create new quiz
+        new_quiz = Quiz(
+            teacher_id=teacher.id,
+            name=f"AI Quiz - {teacher.name}",
+            description="Generated quiz using AI"
+        )
+        db.session.add(new_quiz)
+        db.session.flush()  # Get the quiz ID
+        
+        # Generate questions using AI
+        temp_csv_path = ai_generator.generate_and_save_temp_csv(categories_to_process)
+        
+        # Parse CSV and convert to QuizQuestion objects
+        ai_quiz_questions = parse_ai_csv_to_quiz_questions(temp_csv_path, new_quiz.id)
+        
+        # Add AI questions to database
+        for quiz_question in ai_quiz_questions:
+            db.session.add(quiz_question)
+        
+        db.session.commit()
+        
+        # Create success message
+        success_msg = f"""✅ <strong>AI Quiz Created Successfully!</strong><br><br>
+                        🤖 <strong>AI Generation Report:</strong><br>
+                        📝 Generated Questions: <strong>{len(ai_quiz_questions)}</strong><br>
+                        🎯 Quiz is ready for students to take<br>
+                        💡 Questions were generated directly for your quiz."""
+        
+        print(f"✅ AI Quiz completed: {len(ai_quiz_questions)} questions generated")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True, message=success_msg)
+        flash(success_msg, 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating AI quiz: {e}")
+        msg = f'❌ Error generating AI quiz: {str(e)}'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=msg)
+        flash(msg, 'danger')
+
+    return redirect(url_for('teacher'))
+
+@app.route('/create_unified_quiz', methods=['POST'])
+@teacher_required
+def create_unified_quiz():
+    """
+    Create quiz using both AI-generated questions and question bank.
+    
+    Allows mixing of questions from database and AI generation
+    based on user's checkbox selections for each category.
+    """
+    teacher = get_teacher()
+    
+    # Define available categories
+    categories = {
+        'math': 'Mathematics',
+        'physics': 'Physics', 
+        'chemistry': 'Chemistry',
+        'biology': 'Biology',
+        'cs': 'Computer Science'
+    }
+    
+    # Analyze form data to determine source for each category
+    ai_categories = []
+    bank_categories = []
+    
+    for key, label in categories.items():
+        num_questions_str = request.form.get(f'num_questions_{key}')
+        use_ai = request.form.get(f'use_ai_{key}') == 'on'
+        level = request.form.get(f'level_{key}')
+        
+        if num_questions_str and num_questions_str.isdigit() and int(num_questions_str) > 0:
+            num_questions = int(num_questions_str)
+            
+            if use_ai:
+                ai_categories.append((label, level, num_questions))
+                print(f"AI Category: {label}, Level: {level}, Questions: {num_questions}")
+            else:
+                bank_categories.append((key, label, num_questions, level))
+                print(f"Bank Category: {label}, Level: {level}, Questions: {num_questions}")
+    
+    # Validate that at least one category is selected
+    if not ai_categories and not bank_categories:
+        msg = 'Please select at least one category with questions > 0.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=msg)
+        flash(msg, 'warning')
+        return redirect(url_for('teacher'))
+    
+    try:
+        # Step 1: Clean up existing quizzes
+        existing_quizzes = Quiz.query.filter_by(teacher_id=teacher.id).all()
+        for quiz in existing_quizzes:
+            db.session.delete(quiz)
+        db.session.commit()
+        
+        # Create new quiz
+        new_quiz = Quiz(
+            teacher_id=teacher.id,
+            name=f"Quiz - {teacher.name}",
+            description="Generated quiz with mixed sources"
+        )
+        db.session.add(new_quiz)
+        db.session.flush()  # Get the quiz ID
+        
+        # Initialize statistics tracking
+        generation_stats = {
+            'from_ai': 0,
+            'from_bank': 0,
+            'failed_categories': []
+        }
+        
+        # Step 2: Handle AI generation if requested
+        if ai_categories:
+            print("Processing AI categories...")
+            
+            # Initialize AI Quiz Generator
+            ai_generator = QuizGenerator()
+            
+            # Check Ollama connection
+            if not ai_generator.check_ollama_connection():
+                raise Exception('Cannot connect to Ollama. Make sure it is running on localhost:11434')
+            
+            # Generate AI questions and save to temporary CSV
+            temp_csv_path = ai_generator.generate_and_save_temp_csv(ai_categories)
+            
+            # Parse CSV and convert to QuizQuestion objects
+            ai_quiz_questions = parse_ai_csv_to_quiz_questions(temp_csv_path, new_quiz.id)
+            
+            # Add AI questions to database
+            for quiz_question in ai_quiz_questions:
+                db.session.add(quiz_question)
+            
+            generation_stats['from_ai'] = len(ai_quiz_questions)
+            print(f"Added {len(ai_quiz_questions)} AI questions to quiz")
+        
+        # Step 3: Handle Bank questions if requested
+        if bank_categories:
+            print("Processing Bank categories...")
+            for i, (key, label, num_q, level) in enumerate(bank_categories):
+                print(f"Loading {num_q} questions for {label} at {level} level from bank")
+                bank_questions = load_questions_from_bank(label, level, num_q)
+                
+                if not bank_questions:
+                    generation_stats['failed_categories'].append(f"{label} ({level})")
+                    print(f"No questions found for {label} at {level} level")
+                else:
+                    # Convert bank questions to QuizQuestion objects
+                    for j, q_data in enumerate(bank_questions):
+                        quiz_question = QuizQuestion(
+                            quiz_id=new_quiz.id,
+                            question=q_data['question'],
+                            option_a=q_data['options'][0],
+                            option_b=q_data['options'][1],
+                            option_c=q_data['options'][2],
+                            option_d=q_data['options'][3],
+                            correct_answer=q_data['answer'],
+                            category=q_data['category'],
+                            level=q_data['level'],
+                            source='BANK',
+                            order_index=generation_stats['from_ai'] + generation_stats['from_bank'] + j
+                        )
+                        db.session.add(quiz_question)
+                    
+                    generation_stats['from_bank'] += len(bank_questions)
+                    print(f"Added {len(bank_questions)} bank questions for {label}")
+        
+        # Step 4: Finalize quiz creation
+        total_questions = generation_stats['from_ai'] + generation_stats['from_bank']
+        print(f"Total questions in quiz: {total_questions}")
+        
+        # Validate that we have questions to create quiz
+        if total_questions == 0:
+            db.session.rollback()
+            raise Exception('Failed to load any questions. No questions found for the selected criteria.')
+
+        # Commit all changes to database
+        db.session.commit()
+        
+        # Generate detailed success message
+        success_msg = create_generation_report(generation_stats, total_questions)
+        
+        print(f"✅ Unified quiz completed: {total_questions} total questions")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True, message=success_msg)
+        flash(success_msg, 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating unified quiz: {e}")
+        msg = f'❌ Error creating quiz: {str(e)}'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=msg)
+        flash(msg, 'danger')
+
+    return redirect(url_for('teacher'))
+
+# ============================================================================
+# QUIZ MANAGEMENT ROUTES
+# ============================================================================
 
 @app.route('/exam_teacher')
 @teacher_required
 def exam_teacher():
-    """Display quiz preview for teacher."""
+    """
+    Display quiz preview for teacher.
+    
+    Shows the current active quiz with all questions for teacher review.
+    """
     teacher = get_teacher()
     
     # Get active quiz from database
@@ -665,7 +963,11 @@ def exam_teacher():
 @app.route('/delete_quiz', methods=['POST'])
 @teacher_required
 def delete_quiz():
-    """Delete ALL quizzes for the current teacher."""
+    """
+    Delete all quizzes for the current teacher.
+    
+    Removes all quiz data including questions and resets quiz state.
+    """
     teacher = get_teacher()
     
     try:
@@ -708,7 +1010,11 @@ def delete_quiz():
 @app.route('/reset_student_result', methods=['POST'])
 @teacher_required
 def reset_student_result():
-    """Reset student exam result."""
+    """
+    Reset student exam result to allow retaking.
+    
+    Removes the student's quiz result, enabling them to take the quiz again.
+    """
     data = request.get_json()
     student_id = data.get('id')
 
@@ -727,12 +1033,18 @@ def reset_student_result():
         print(f"Reset result error: {e}")
         return jsonify(success=False, message="Error resetting result.")
 
-# ---------- Student Routes ---------- #
+# ============================================================================
+# STUDENT ROUTES
+# ============================================================================
 
 @app.route('/student')
 @student_required
 def student():
-    """Student dashboard."""
+    """
+    Student dashboard.
+    
+    Main page for students showing their information and teacher details.
+    """
     student = get_student()
     teacher = db.session.get(Teacher, student.teacher_id) if student else None
     
@@ -745,7 +1057,12 @@ def student():
 @app.route('/quiz')
 @student_required
 def quiz():
-    """Display quiz for student to take."""
+    """
+    Display quiz for student to take.
+    
+    Shows quiz questions if available and not already completed,
+    or displays results if already taken.
+    """
     student = get_student()
     teacher = db.session.get(Teacher, student.teacher_id) if student else None
     quiz_questions = []
@@ -783,14 +1100,19 @@ def quiz():
 @app.route('/submit_quiz', methods=['POST'])
 @student_required
 def submit_quiz():
-    """Handle quiz submission and scoring."""
+    """
+    Handle quiz submission and scoring.
+    
+    Processes student answers, calculates scores by category,
+    and saves results to database.
+    """
     student = get_student()
     teacher = db.session.get(Teacher, student.teacher_id) if student else None
     
     if not teacher:
         return jsonify(success=False, message="Teacher not found.")
 
-    # Check if already completed
+    # Check if student has already completed the quiz
     existing_result = Result.query.filter_by(student_id=student.id).first()
     if existing_result:
         return jsonify(success=False, message="You have already completed this quiz. You cannot retake it.")
@@ -803,15 +1125,16 @@ def submit_quiz():
     quiz_questions = [q.to_dict() for q in quiz.questions]
 
     try:
-        # Process answers and calculate scores
+        # Process answers and calculate scores by category
         scores = calculate_quiz_scores(quiz_questions, request.form)
         
-        # Save to database only
+        # Save results to database
         result_data = create_result_data(student, scores)
         new_result = Result(**result_data)
         db.session.add(new_result)
         db.session.commit()
 
+        # Generate summary for display
         summary = format_result_summary(result_data)
         return jsonify(success=True, 
                       message="Quiz submitted successfully! 🎉", 
@@ -822,7 +1145,9 @@ def submit_quiz():
         print(f"Quiz submission error: {e}")
         return jsonify(success=False, message="Error submitting quiz. Please try again.")
 
-# ---------- Application Initialization ---------- #
+# ============================================================================
+# APPLICATION STARTUP
+# ============================================================================
 
 if __name__ == '__main__':
     with app.app_context():
