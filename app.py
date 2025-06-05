@@ -1,17 +1,22 @@
 import csv
-import random
-import string
-import os
-import json
-import io
 import time
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, jsonify, flash
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
 from datetime import timedelta
 from config import Config
-from models import db, Teacher, Student, Result, QuestionBank, Quiz, QuizQuestion
+from models import db, Teacher, Student, Result, Quiz, QuizQuestion
 from functools import wraps
+
+# Import utility functions
+from utils import (
+    get_json_path, read_json, write_json, generate_random_password,
+    create_csv_response, validate_form_data
+)
+from quiz_utils import (
+    load_questions_from_bank, create_generation_report, calculate_quiz_scores,
+    create_result_data, format_result_summary
+)
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -62,57 +67,6 @@ def get_student():
     if student_id:
         return db.session.get(Student, student_id)
     return None
-
-def get_json_path(folder, filename):
-    """Return the full path for a JSON file in a given folder."""
-    return os.path.join(folder, filename)
-
-def read_json(path):
-    """Read and return JSON data from a file, or an empty list if not found."""
-    try:
-        if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except (json.JSONDecodeError, IOError) as e:
-        print(f"Error reading JSON file {path}: {e}")
-    return []
-
-def write_json(path, data):
-    """Write data to a JSON file with error handling."""
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except IOError as e:
-        print(f"Error writing JSON file {path}: {e}")
-        raise
-
-def generate_random_password(length=8):
-    """Generate a secure random password with letters and digits."""
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-def create_csv_response(data, headers, filename):
-    """Create a CSV response for file download."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(headers)
-    writer.writerows(data)
-    output.seek(0)
-    
-    return send_file(
-        io.BytesIO(output.getvalue().encode('utf-8')),
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )
-
-def validate_form_data(data, required_fields):
-    """Validate form data and return errors if any."""
-    errors = []
-    for field in required_fields:
-        if not data.get(field, '').strip():
-            errors.append(f"{field.title()} is required.")
-    return errors
 
 # ---------- ROUTES ---------- #
 
@@ -689,77 +643,6 @@ def create_quiz():
 
     return redirect(url_for('teacher'))
 
-def load_questions_from_bank(subject, level, num_needed):
-    """Load questions from the QuestionBank table in the database."""
-    import random
-    
-    try:
-        # Query the QuestionBank table
-        # Ensure 'subject' and 'level' parameters match the values in your QuestionBank table
-        # For example, if your table stores 'Mathematics' as subject, pass that directly.
-        # If your table uses different casing or naming, adjust here or in the calling function.
-        
-        # Fetch all matching questions first
-        all_matching_questions = QuestionBank.query.filter_by(
-            category=subject, 
-            level=level
-        ).all()
-        
-        if not all_matching_questions:
-            print(f"No questions found in DB for {subject} - {level}")
-            return []
-
-        # Shuffle them to get a random selection
-        random.shuffle(all_matching_questions)
-        
-        # Select the number needed
-        selected_db_questions = all_matching_questions[:num_needed]
-        
-        formatted_questions = []
-        for i, db_q in enumerate(selected_db_questions):
-            # Adapt this mapping based on your QuestionBank model fields
-            formatted_q = {
-                'id': f"BANK-{db_q.id}", # Or use db_q.id directly if preferred
-                'question': db_q.question,
-                'options': [
-                    db_q.option_a, 
-                    db_q.option_b, 
-                    db_q.option_c, 
-                    db_q.option_d
-                ], # Assuming these field names
-                'answer': db_q.correct_answer, # Assuming field name
-                'category': db_q.category,
-                'level': db_q.level,
-                'source': 'BANK' # Source is always BANK now
-            }
-            formatted_questions.append(formatted_q)
-        
-        print(f"Loaded {len(formatted_questions)} questions from DB for {subject} - {level}")
-        return formatted_questions
-        
-    except Exception as e:
-        print(f"Error loading questions from database bank: {e}")
-        # Consider how to handle DB errors, e.g., logging, re-raising
-    
-    return []
-
-def create_generation_report(stats, total_questions):
-    """Create detailed generation report (simplified for bank-only)."""
-    bank_count = stats['from_bank']
-    failed = stats.get('failed_categories', []) # Ensure 'failed_categories' key exists
-    
-    # Calculate percentages
-    bank_percent = 100 if total_questions > 0 else 0 # Simplified as all are from bank
-    
-    report = f"""✅ <strong>Quiz Generated Successfully!</strong><br><br>
-📊 <strong>Generation Report:</strong><br>
-📚 From Bank: <strong>{bank_count}</strong> questions ({bank_percent}%)<br>
-📝 Total Questions: <strong>{total_questions}</strong><br>"""
-    
-    if failed:
-        report += f"<br>⚠️ Categories with no questions found: {', '.join(failed)}"
-    
-    return report
 # ---------- Exam Management Routes ---------- #
 
 @app.route('/exam_teacher')
@@ -938,64 +821,6 @@ def submit_quiz():
         db.session.rollback()
         print(f"Quiz submission error: {e}")
         return jsonify(success=False, message="Error submitting quiz. Please try again.")
-
-# ---------- Helper Functions for Quiz Processing ---------- #
-
-def calculate_quiz_scores(quiz_questions, form_data):
-    """Calculate scores for each category based on quiz answers."""
-    categories = {
-        'Mathematics': {'correct': 0, 'total': 0},
-        'Physics': {'correct': 0, 'total': 0},
-        'Chemistry': {'correct': 0, 'total': 0},
-        'Biology': {'correct': 0, 'total': 0},
-        'Computer Science': {'correct': 0, 'total': 0}
-    }
-    
-    total_correct = 0
-    
-    for i, question in enumerate(quiz_questions):
-        user_answer = form_data.get(f'q{i}')
-        category = question.get('category', 'N/A')
-        correct_answer = question.get('answer')
-        
-        if category in categories:
-            categories[category]['total'] += 1
-            if user_answer == correct_answer:
-                categories[category]['correct'] += 1
-                total_correct += 1
-    
-    return {
-        'categories': categories,
-        'total_correct': total_correct,
-        'total_questions': len(quiz_questions)
-    }
-
-def create_result_data(student, scores):
-    """Create result data dictionary for database storage."""
-    categories = scores['categories']
-    return {
-        'student_id': student.id,
-        'name': student.name,
-        'group': student.group,
-        'mathematics': f"{categories['Mathematics']['correct']}/{categories['Mathematics']['total']}",
-        'physics': f"{categories['Physics']['correct']}/{categories['Physics']['total']}",
-        'chemistry': f"{categories['Chemistry']['correct']}/{categories['Chemistry']['total']}",
-        'biology': f"{categories['Biology']['correct']}/{categories['Biology']['total']}",
-        'computer_science': f"{categories['Computer Science']['correct']}/{categories['Computer Science']['total']}",
-        'total': f"{scores['total_correct']}/{scores['total_questions']}"
-    }
-
-def format_result_summary(result_data):
-    """Format result summary for display."""
-    return f"""
-    <b>Results Summary:</b><br>
-    Mathematics: {result_data['mathematics']}<br>
-    Physics: {result_data['physics']}<br>
-    Chemistry: {result_data['chemistry']}<br>
-    Biology: {result_data['biology']}<br>
-    Computer Science: {result_data['computer_science']}<br>
-    <b>Total: {result_data['total']}</b>
-    """
 
 # ---------- Application Initialization ---------- #
 
