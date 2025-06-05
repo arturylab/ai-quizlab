@@ -1,10 +1,23 @@
+/**
+ * AI QuizLab - Main JavaScript Module
+ * Handles all frontend interactions for teachers and students
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Quiz form AJAX
+    
+    // ============================================================================
+    // STUDENT QUIZ FUNCTIONALITY
+    // ============================================================================
+    
+    /**
+     * Handle student quiz submission via AJAX
+     */
     const form = document.getElementById('studentQuizForm');
     if (form) {
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(form);
+            
             fetch("/submit_quiz", {
                 method: "POST",
                 body: formData,
@@ -14,8 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const resultDiv = document.getElementById('quizResult');
                 if (data.success) {
+                    // Show success message and results summary
                     resultDiv.innerHTML = `<div style="color:green;font-weight:bold;">${data.message}</div><br>${data.summary}`;
                     form.style.display = 'none';
+                    
+                    // Show logout option after quiz completion
                     const logoutDiv = document.getElementById('logoutAfterQuiz');
                     if (logoutDiv) logoutDiv.style.display = 'block';
                 } else {
@@ -25,7 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Upload students AJAX (with automatic download)
+    // ============================================================================
+    // STUDENT UPLOAD FUNCTIONALITY
+    // ============================================================================
+    
+    /**
+     * Handle CSV student upload with automatic password download
+     */
     const uploadForm = document.getElementById('uploadStudentsForm');
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(event) {
@@ -33,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const messageDiv = document.getElementById('uploadMessage');
             
-            // Show loading message
             messageDiv.innerHTML = '<div style="color:blue;">Uploading students...</div>';
             
             fetch('/upload', {
@@ -46,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     let message = `<div style="color:green;">${data.message}</div>`;
                     
-                    // Show errors if any
+                    // Display any upload errors
                     if (data.errors && data.errors.length > 0) {
                         message += '<div style="color:orange; font-size:14px; margin-top:10px;"><strong>Errors:</strong><br>';
                         data.errors.forEach(error => {
@@ -57,19 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     messageDiv.innerHTML = message;
                     
-                    // Automatically trigger CSV download if students were added
+                    // Auto-download passwords CSV if students were successfully added
                     if (data.students && data.students.length > 0) {
-                        // Add a brief delay to show the success message
                         setTimeout(() => {
                             window.open('/download_passwords_csv', '_blank');
                         }, 1000);
-                    }
-                    
-                    // Refresh the students table
-                    if (data.students && data.students.length > 0) {
+                        
+                        // Update the students table with new data
                         updateStudentsTable(data.students);
                     }
-                    // Clear the file input
+                    
                     this.reset();
                 } else {
                     messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
@@ -82,7 +100,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Create quiz AJAX with real-time progress tracking
+    // ============================================================================
+    // QUIZ CREATION FUNCTIONALITY
+    // ============================================================================
+    
+    /**
+     * Handle quiz creation with real-time progress tracking
+     */
     const createQuizForm = document.getElementById('createQuizForm');
     if (createQuizForm) {
         createQuizForm.addEventListener('submit', function(event) {
@@ -93,23 +117,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
             
-            // Count total categories to process
+            // Validate that at least one category is selected
             const totalCategories = getTotalCategories(formData);
-            
             if (totalCategories === 0) {
                 messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
                 return;
             }
             
-            // Show loading message
+            // Initialize progress tracking UI
             messageDiv.innerHTML = '<div style="color:blue;">📚 Generating quiz from question bank...</div>';
-            
-            // Show progress bar
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
             progressText.textContent = 'Starting generation...';
             
-            // Start progress tracking
+            // Start real-time progress monitoring
             const progressInterval = startProgressTracking(progressBar, progressText);
             
             fetch(this.action, {
@@ -119,10 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                // Clean up progress tracking
                 clearInterval(progressInterval);
                 progressBar.style.width = '100%';
                 progressText.textContent = 'Completed!';
                 
+                // Show final result after brief delay
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     
@@ -142,7 +165,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Real-time progress tracking function
+    /**
+     * Real-time progress tracking for quiz generation
+     * Polls the server every 500ms for progress updates
+     */
     function startProgressTracking(progressBar, progressText) {
         return setInterval(() => {
             fetch('/quiz_progress', {
@@ -152,8 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'processing') {
-                    // Update progress bar based on real backend progress
-                    const percentage = Math.min(data.percentage, 95); // Cap at 95% until completion
+                    // Update progress bar (cap at 95% until completion)
+                    const percentage = Math.min(data.percentage, 95);
                     progressBar.style.width = percentage + '%';
                     progressText.textContent = data.message || 'Processing...';
                 } else if (data.status === 'completed') {
@@ -167,10 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.log('Progress tracking error:', error);
             });
-        }, 500); // Check progress every 500ms
+        }, 500);
     }
 
-    // Function to count total categories with questions > 0
+    /**
+     * Count how many quiz categories have questions > 0
+     */
     function getTotalCategories(formData) {
         let count = 0;
         const categories = ['math', 'physics', 'chemistry', 'biology', 'cs'];
@@ -185,7 +213,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return count;
     }
 
-    // Profile editing functionality
+    // ============================================================================
+    // TEACHER PROFILE EDITING
+    // ============================================================================
+    
+    /**
+     * Handle profile field editing functionality
+     */
     const editNameBtn = document.getElementById('editNameBtn');
     const editSchoolBtn = document.getElementById('editSchoolBtn');
     const editPasswordBtn = document.getElementById('editPasswordBtn');
@@ -221,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resetFieldEdit('nameCell');
             resetFieldEdit('schoolCell');
             
-            // Hide password edit row
+            // Hide password edit interface
             const passwordRow = document.getElementById('passwordRow');
             const passwordEditRow = document.getElementById('passwordEditRow');
             const passwordInput = document.getElementById('passwordInput');
@@ -237,18 +271,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    /**
+     * Toggle a field between display and edit mode
+     */
     function toggleFieldEdit(cellId, fieldName, placeholder) {
         const cell = document.getElementById(cellId);
-        if (!cell) return;
+        if (!cell || cell.querySelector('input')) return;
 
-        if (cell.querySelector('input')) {
-            // Already editing, do nothing
-            return;
-        }
-
-        const originalValue = cell.getAttribute('data-original');
         const currentValue = cell.textContent;
-        
         cell.innerHTML = `<input type="text" name="${fieldName}" value="${currentValue}" placeholder="${placeholder}" style="width:100%; padding:4px;">`;
         
         const input = cell.querySelector('input');
@@ -258,6 +288,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    /**
+     * Reset a field from edit mode to display mode
+     */
     function resetFieldEdit(cellId) {
         const cell = document.getElementById(cellId);
         if (!cell) return;
@@ -266,7 +299,13 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.textContent = originalValue;
     }
 
-    // Function to update students table
+    // ============================================================================
+    // STUDENT TABLE MANAGEMENT
+    // ============================================================================
+    
+    /**
+     * Update the students table with new data
+     */
     function updateStudentsTable(students) {
         const tbody = document.querySelector('#studentsTable tbody');
         if (!tbody) return;
@@ -278,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Build table rows for each student
         students.forEach(student => {
             const row = document.createElement('tr');
             row.setAttribute('data-student-id', student.id);
@@ -302,15 +342,20 @@ document.addEventListener('DOMContentLoaded', function() {
         attachStudentEventListeners();
     }
 
-    // Function to attach event listeners to student management buttons
+    /**
+     * Attach event listeners to student management buttons
+     * Handles edit, delete, and password reset functionality
+     */
     function attachStudentEventListeners() {
-        // Edit student
+        // Edit student functionality
         document.querySelectorAll('.edit-student').forEach(function(btn) {
             btn.onclick = function() {
                 const row = btn.closest('tr');
                 const nameCell = row.querySelector('.editable-name');
                 const groupCell = row.querySelector('.editable-group');
+                
                 if (!nameCell.querySelector('input')) {
+                    // Switch to edit mode
                     const name = nameCell.textContent;
                     const group = groupCell.textContent;
                     nameCell.innerHTML = `<input type="text" value="${name}" style="width:90%;">`;
@@ -318,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     btn.innerHTML = '💾';
                     btn.title = 'Save';
                     
-                    // Create new save function for this specific button
+                    // Create save function for this specific button
                     const saveFunction = function() {
                         fetch('/edit_student', {
                             method: 'POST',
@@ -331,11 +376,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         }).then(res => res.json())
                         .then(data => {
                             if (data.success) {
+                                // Switch back to display mode
                                 nameCell.textContent = data.name;
                                 groupCell.textContent = data.group;
                                 btn.innerHTML = '✏️';
                                 btn.title = 'Edit';
-                                // Re-attach the original edit functionality
                                 attachStudentEventListeners();
                             } else {
                                 alert(data.message || 'Error updating student');
@@ -348,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
 
-        // Delete student
+        // Delete student functionality
         document.querySelectorAll('.delete-student').forEach(function(btn) {
             btn.onclick = function() {
                 if (confirm('Are you sure you want to delete this student?')) {
@@ -369,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
 
-        // Reset student password
+        // Reset student password functionality
         document.querySelectorAll('.reset-password').forEach(function(btn) {
             btn.onclick = function() {
                 const row = btn.closest('tr');
@@ -389,14 +434,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initial attachment of event listeners
+    // Initialize student event listeners on page load
     attachStudentEventListeners();
 
-    // Retry quiz functionality
+    // ============================================================================
+    // QUIZ RESULT MANAGEMENT
+    // ============================================================================
+    
+    /**
+     * Handle retry quiz functionality for students
+     */
     document.querySelectorAll('.retry-quiz').forEach(function(btn) {
         btn.onclick = function() {
             const row = btn.closest('tr');
             const studentId = row.querySelector('td').textContent;
+            
             if (confirm('Are you sure you want to allow this student to retake the quiz? This will delete their previous results.')) {
                 fetch('/reset_student_result', {
                     method: 'POST',
@@ -414,14 +466,19 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
-    // Delete quiz functionality
+    // ============================================================================
+    // QUIZ DELETION FUNCTIONALITY
+    // ============================================================================
+    
+    /**
+     * Handle quiz deletion with confirmation
+     */
     const deleteQuizBtn = document.getElementById('deleteQuizBtn');
     if (deleteQuizBtn) {
         deleteQuizBtn.addEventListener('click', function() {
             if (confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
                 const messageDiv = document.getElementById('deleteMessage');
                 
-                // Show loading message
                 messageDiv.innerHTML = '<div style="color:blue;">Deleting quiz...</div>';
                 
                 fetch('/delete_quiz', {
@@ -437,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
-                        // Redirect to teacher dashboard after 2 seconds
+                        // Redirect to teacher dashboard after successful deletion
                         setTimeout(() => {
                             window.location.href = '/teacher';
                         }, 2000);
@@ -450,98 +507,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     messageDiv.innerHTML = '<div style="color:red;">Error deleting quiz. Please try again.</div>';
                 });
             }
-        });
-    }
-
-    // Handle AI Quiz Generation
-    const generateAIQuizBtn = document.getElementById('generateAIQuiz');
-    if (generateAIQuizBtn) {
-        generateAIQuizBtn.addEventListener('click', function() {
-            const form = document.getElementById('createQuizForm');
-            const formData = new FormData(form);
-            
-            // Count total categories to process
-            const totalCategories = getTotalCategories(formData);
-            
-            if (totalCategories === 0) {
-                const messageDiv = document.getElementById('quizMessage');
-                messageDiv.innerHTML = '<div style="color:red;">Please select at least one category with questions > 0.</div>';
-                return;
-            }
-            
-            // Add AI flag to form data
-            formData.append('use_ai', 'true');
-            
-            // Show progress bar
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const messageDiv = document.getElementById('quizMessage');
-            
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressText.textContent = 'Initializing AI generation...';
-            messageDiv.innerHTML = '<div style="color:blue;">🤖 Generating quiz with AI...</div>';
-            
-            // Disable buttons during generation
-            this.disabled = true;
-            document.querySelector('button[type="submit"]').disabled = true;
-            
-            // Start progress monitoring
-            let progressInterval = setInterval(() => {
-                fetch('/quiz_progress')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.total > 0) {
-                            const percentage = Math.min((data.progress / data.total) * 100, 95);
-                            progressBar.style.width = percentage + '%';
-                            progressText.textContent = data.message || `Processing ${data.progress}/${data.total}...`;
-                        }
-                        
-                        if (data.status === 'completed' || data.status === 'error') {
-                            clearInterval(progressInterval);
-                            progressContainer.style.display = 'none';
-                            
-                            // Re-enable buttons
-                            generateAIQuizBtn.disabled = false;
-                            document.querySelector('button[type="submit"]').disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Progress fetch error:', error);
-                    });
-            }, 1000);
-            
-            // Submit form with AI flag
-            fetch('/create_ai_quiz', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                clearInterval(progressInterval);
-                progressContainer.style.display = 'none';
-                
-                if (data.success) {
-                    messageDiv.innerHTML = `<div style="color:green; font-weight:bold;">${data.message}</div>`;
-                } else {
-                    messageDiv.innerHTML = `<div style="color:red;">${data.message}</div>`;
-                }
-                
-                // Re-enable buttons
-                this.disabled = false;
-                document.querySelector('button[type="submit"]').disabled = false;
-            })
-            .catch(error => {
-                clearInterval(progressInterval);
-                progressContainer.style.display = 'none';
-                messageDiv.innerHTML = `<div style="color:red;">Error generating AI quiz: ${error.message}</div>`;
-                
-                // Re-enable buttons
-                this.disabled = false;
-                document.querySelector('button[type="submit"]').disabled = false;
-            });
         });
     }
 });

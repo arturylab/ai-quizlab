@@ -588,10 +588,11 @@ def create_quiz():
     })
     
     try:
-        existing_quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
-        if existing_quiz:
-            existing_quiz.is_active = False
-            db.session.commit()
+        existing_quizzes = Quiz.query.filter_by(teacher_id=teacher.id).all()
+        for quiz in existing_quizzes:
+            db.session.delete(quiz)
+        
+        db.session.commit()
         
         new_quiz = Quiz(
             teacher_id=teacher.id,
@@ -621,19 +622,14 @@ def create_quiz():
             if not bank_questions:
                 generation_stats['failed_categories'].append(f"{label} ({level})")
                 print(f"No questions found in bank for {label} at level {level}")
-                # Continue to next category if no questions found for this one
-                # If you want to fail the entire quiz generation, you can add a check here
-                # and rollback / return error.
-                # For now, we'll just skip this category.
-                # continue # Optional: skip if no questions
             
             all_quiz_questions.extend(bank_questions)
             generation_stats['from_bank'] += len(bank_questions)
             
             print(f"✓ {label}: {len(bank_questions)} bank questions added.")
-            time.sleep(0.1) # Shorter sleep as DB access is faster
+            time.sleep(0.1)
         
-        if not all_quiz_questions: # Check if any questions were added at all
+        if not all_quiz_questions:
             db.session.rollback()
             quiz_progress.update({
                 'status': 'error',
@@ -658,7 +654,7 @@ def create_quiz():
                 correct_answer=q_data['answer'],
                 category=q_data['category'],
                 level=q_data['level'],
-                source='BANK', # Source is now always BANK
+                source='BANK',
                 order_index=j
             )
             db.session.add(quiz_question)
@@ -724,7 +720,7 @@ def load_questions_from_bank(subject, level, num_needed):
             # Adapt this mapping based on your QuestionBank model fields
             formatted_q = {
                 'id': f"BANK-{db_q.id}", # Or use db_q.id directly if preferred
-                'question': db_q.question, # CAMBIADO DE db_q.question_text
+                'question': db_q.question,
                 'options': [
                     db_q.option_a, 
                     db_q.option_b, 
@@ -786,35 +782,43 @@ def exam_teacher():
 @app.route('/delete_quiz', methods=['POST'])
 @teacher_required
 def delete_quiz():
-    """Delete the generated quiz for the current teacher."""
+    """Delete ALL quizzes for the current teacher."""
     teacher = get_teacher()
     
     try:
-        # Find and delete quiz
-        quiz = Quiz.query.filter_by(teacher_id=teacher.id, is_active=True).first()
+        quizzes = Quiz.query.filter_by(teacher_id=teacher.id).all()
         
-        if quiz:
-            db.session.delete(quiz)  # Cascade will delete QuizQuestions
+        if quizzes:
+            deleted_count = len(quizzes)
+            for quiz in quizzes:
+                db.session.delete(quiz)
+            
             db.session.commit()
             
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify(success=True, message="Quiz deleted successfully! 🗑️")
+            message = f"Successfully deleted {deleted_count} quiz(es)! 🗑️"
             
-            flash('Quiz deleted successfully! 🗑️', 'success')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=True, message=message)
+            
+            flash(message, 'success')
         else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify(success=False, message="No quiz found to delete.")
+            message = "No quizzes found to delete."
             
-            flash('No quiz found to delete.', 'warning')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=False, message=message)
+            
+            flash(message, 'warning')
             
     except Exception as e:
         db.session.rollback()
         print(f"Error deleting quiz: {e}")
         
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify(success=False, message="Error deleting quiz. Please try again.")
+        message = "Error deleting quiz. Please try again."
         
-        flash('Error deleting quiz. Please try again.', 'danger')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=message)
+        
+        flash(message, 'danger')
 
     return redirect(url_for('teacher'))
 
