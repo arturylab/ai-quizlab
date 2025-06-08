@@ -2,206 +2,255 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard - AI QuizLab 🤖</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="teacher-container">
-        <h2>Welcome, teacher {{ teacher_name }}! 👩‍🏫</h2>
+    <div class="container mt-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Welcome, teacher {{ teacher_name }}!</h2>
+            <div class="d-flex align-items-center">
+                <!-- AI Quiz Dropdown -->
+                <div class="dropdown mr-2">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="aiQuizDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        AI Quiz
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="aiQuizDropdownMenuButton">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#aiQuizModal">Create Quiz</a>
+                        <a class="dropdown-item" href="{{ url_for('exam_teacher') }}">View Quiz</a>
+                    </div>
+                </div>
+                
+                <!-- Account Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-info dropdown-toggle" type="button" id="accountDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Account
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="accountDropdownMenuButton">
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+                        <a class="dropdown-item" href="#" id="logout">Logout</a>
+                    </div>
+                </div>
+
+                <!-- Hidden Logout Form -->
+                <form id="logoutForm" action="/logout" method="post" style="display: none;"></form>
+            </div>
+        </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    {% if category == 'warning' %}
-                        <div class="alert alert-warning">{{ message|safe }}</div>
-                    {% else %}
-                        <div class="alert alert-success">{{ message }}</div>
-                    {% endif %}
+                    <div class="alert alert-{{ category if category in ['danger', 'warning', 'success', 'info'] else 'secondary' }} alert-dismissible fade show" role="alert">
+                        {{ message|safe if category == 'warning' else message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
         
-        <!-- Section 1: File Uploader -->
-        <section style="margin-top:32px; text-align: center;">
-            <h3>Create Student List in CSV</h3>
-            <form id="uploadStudentsForm" action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" required>
-                <br>
-                <div style="text-align: center; margin-top:10px;">
-                    <button type="submit" style="width:auto; display:inline-block;">Upload List</button>
-                </div>
-            </form>
-            <div id="uploadMessage" style="margin-top:12px; text-align: center;"></div>
-        </section>
+        <!-- Botón para mostrar/ocultar la sección de carga de archivos -->
+        <div class="text-center my-3">
+            <button type="button" class="btn btn-outline-primary" id="toggleUploadSectionBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Add Student List
+            </button>
+        </div>
+
+        <!-- Section 1: File Uploader (inicialmente oculta) -->
+        <div id="uploadSectionContainer" style="display: none;">
+            <section class="text-center my-4 p-3 border rounded shadow-sm">
+                <h3>Create Student List in CSV</h3>
+                <form id="uploadStudentsForm" action="/upload" method="post" enctype="multipart/form-data" class="mt-3">
+                    <div class="form-group w-50 mx-auto">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="studentCsvFile" name="file" required>
+                            <label class="custom-file-label" for="studentCsvFile" data-browse="Browse">Choose CSV file...</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Upload List</button>
+                </form>
+                <div id="uploadMessage" class="mt-3"></div>
+            </section>
+        </div>
 
         <!-- Section 2: Student List -->
-        <section>
+        <section class="my-4 p-3 border rounded shadow-sm">
             <h3>Student List 👥</h3>
-            <table id="studentsTable" style="width:100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Group</th>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if students_list %}
-                        {% for student in students_list %}
-                        <tr data-student-id="{{ student.id }}">
-                            <td>{{ student.id }}</td>
-                            <td class="editable-name">{{ student.name }}</td>
-                            <td class="editable-group">{{ student.group }}</td>
-                            <td>{{ student.username }}</td>
-                            <td>
-                                ********
-                                <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
-                            </td>
-                            <td>
-                                <span class="edit-student" style="cursor:pointer;" title="Edit">✏️</span>
-                                <span class="delete-student" style="cursor:pointer; margin-left:8px;" title="Delete">❌</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
+            <div class="table-responsive">
+                <table id="studentsTable" class="table table-striped table-bordered table-hover mt-3">
+                    <thead class="thead-light">
                         <tr>
-                            <td colspan="6" style="text-align:center;">No students yet.</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-            <div style="text-align: center; margin-top:10px;">
-                <a href="{{ url_for('download_students_csv') }}">
-                    <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
-                </a>
-            </div>
-        </section>
-
-        <!-- Section 3: Create Quiz -->
-        <section style="margin-top:32px;">
-            <h3>Create Quiz 📝</h3>
-            
-            <form id="quizCreationForm">
-                <table style="width:100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Number of Questions<br><span style="font-weight:normal; font-size:12px;">(Max 25 Q per category)</span></th>
-                            <th>Level</th>
-                            <th>Generate with AI<br><span style="font-weight:normal; font-size:12px;">(Check to use AI)</span></th>
+                            <th class="sortable-header" data-column="id" data-type="number">ID <span class="sort-icon"></span></th>
+                            <th class="sortable-header" data-column="name" data-type="string">Name <span class="sort-icon"></span></th>
+                            <th class="sortable-header" data-column="group" data-type="string">Group <span class="sort-icon"></span></th>
+                            <th class="sortable-header" data-column="username" data-type="string">Username <span class="sort-icon"></span></th>
+                            <th>Password</th>
+                            <th>Edit</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% set categories = [
-                            ('Mathematics', 'math'),
-                            ('Physics', 'physics'),
-                            ('Chemistry', 'chemistry'),
-                            ('Biology', 'biology'),
-                            ('Computer Science', 'cs')
-                        ] %}
-                        {% for label, name in categories %}
-                        <tr>
-                            <td>{{ label }}</td>
-                            <td>
-                                <input type="number" name="num_questions_{{ name }}" min="0" max="25" value="0" required>
-                            </td>
-                            <td>
-                                <select name="level_{{ name }}" required>
-                                    <option value="Elementary">Elementary</option>
-                                    <option value="Middle School">Middle School</option>
-                                    <option value="High School">High School</option>
-                                </select>
-                            </td>
-                            <td style="text-align: center;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                    <input type="checkbox" name="use_ai_{{ name }}" id="use_ai_{{ name }}" style="transform: scale(1.2);">
-                                    <label for="use_ai_{{ name }}" style="font-size: 12px; color: #666; margin: 0;">
-                                        <span class="ai-status-{{ name }}">📚 Bank</span>
-                                    </label>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                        {% if students_list %}
+                            {% for student in students_list %}
+                            <tr data-student-id="{{ student.id }}">
+                                <td>{{ student.id }}</td>
+                                <td class="editable-name">{{ student.name }}</td>
+                                <td class="editable-group">{{ student.group }}</td>
+                                <td>{{ student.username }}</td>
+                                <td>
+                                    ********
+                                    <span class="reset-password" style="cursor:pointer; margin-left:8px;" title="Reset Password">🔄</span>
+                                </td>
+                                <td>
+                                    <span class="edit-student" style="cursor:pointer;" title="Edit">✏️</span>
+                                    <span class="delete-student" style="cursor:pointer; margin-left:8px;" title="Delete">❌</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">No students yet.</td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
-                
-                <!-- Action Button -->
-                <div style="text-align: center; margin-top:10px; display: flex; justify-content: center; gap: 16px;">
-                    <button type="button" id="createQuizBtn" style="width:auto; display:inline-block; background:#2E7D32; padding: 12px 24px; font-size: 16px;">Create Quiz</button>
-                    <a href="{{ url_for('exam_teacher') }}">
-                        <button type="button" style="width:auto; display:inline-block; background:#2E7D32; padding: 12px 24px; font-size: 16px;">View Quiz</button>
-                    </a>
-                </div>
-                
-                <!-- Message Area -->
-                <div id="quizMessage" style="margin-top:15px; text-align: center;"></div>
-            </form>
-
-        </section>
-        
-        <!-- Section 3: Statistics -->
-        <section style="margin-top:32px;">
-            <h3>Statistics 📊</h3>
-            <table style="width:100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Group</th>
-                        <th>Mathematics</th>
-                        <th>Physics</th>
-                        <th>Chemistry</th>
-                        <th>Biology</th>
-                        <th>Computer Science</th>
-                        <th>Total</th>
-                        <th>Retry</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if results_list %}
-                        {% for result in results_list %}
-                        <tr>
-                            <td>{{ result.student_id }}</td>
-                            <td>{{ result.name }}</td>
-                            <td>{{ result.group }}</td>
-                            <td>{{ result.mathematics }}</td>
-                            <td>{{ result.physics }}</td>
-                            <td>{{ result.chemistry }}</td>
-                            <td>{{ result.biology }}</td>
-                            <td>{{ result.computer_science }}</td>
-                            <td>{{ result.total }}</td>
-                            <td>
-                                <span class="retry-quiz" style="cursor:pointer;" title="Allow retry">↩️</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="10" style="text-align:center;">No results yet.</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-            <div style="text-align: center; margin-top:10px;">
-                <a href="{{ url_for('download_results_csv') }}">
-                    <button type="button" style="width:auto; display:inline-block;">Download CSV</button>
-                </a>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('download_students_csv') }}" class="btn btn-secondary">Download CSV</a>
             </div>
         </section>
 
-        <!-- Section 5: Menu -->
-        <div style="position: absolute; top: 24px; right: 32px; display: flex; gap: 8px;">
-            <a href="{{ url_for('profile') }}">
-                <button type="button" style="background:#1976d2; width:auto; display:inline-block;">Profile</button>
-            </a>
-            <form action="/logout" method="post" style="margin:0;">
-                <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
-            </form>
-</div>
+        <!-- Section 3: Create Quiz (Ahora es un Modal) -->
+        <!-- Ya no se muestra aquí directamente -->
+        
+        <!-- Section 4: Statistics -->
+        <section class="my-4 p-3 border rounded shadow-sm">
+            <h3>Statistics 📊</h3>
+            <div class="table-responsive">
+                <table id="statisticsTable" class="table table-striped table-bordered table-hover mt-3">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="sortable-header" data-column="id" data-type="number">ID <span class="sort-icon"></span></th>
+                            <th class="sortable-header" data-column="name" data-type="string">Name <span class="sort-icon"></span></th>
+                            <th class="sortable-header" data-column="group" data-type="string">Group <span class="sort-icon"></span></th>
+                            <th>Mathematics</th>
+                            <th>Physics</th>
+                            <th>Chemistry</th>
+                            <th>Biology</th>
+                            <th>Computer Science</th>
+                            <th>Total</th>
+                            <th>Retry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if results_list %}
+                            {% for result in results_list %}
+                            <tr data-result-id="{{ result.student_id }}">
+                                <td>{{ result.student_id }}</td>
+                                <td>{{ result.name }}</td>
+                                <td>{{ result.group }}</td>
+                                <td>{{ result.mathematics }}</td>
+                                <td>{{ result.physics }}</td>
+                                <td>{{ result.chemistry }}</td>
+                                <td>{{ result.biology }}</td>
+                                <td>{{ result.computer_science }}</td>
+                                <td>{{ result.total }}</td>
+                                <td>
+                                    <span class="retry-quiz" style="cursor:pointer;" title="Allow retry" data-student-id="{{ result.student_id }}">↩️</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center">No results yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('download_results_csv') }}" class="btn btn-secondary">Download CSV</a>
+            </div>
+        </section>
     </div>
+
+    <!-- AI Quiz Modal -->
+    <div class="modal fade" id="aiQuizModal" tabindex="-1" role="dialog" aria-labelledby="aiQuizModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aiQuizModalLabel">Create Quiz 📝</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="quizCreationForm">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light" style="text-align: center;">
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Number of Questions<br><small class="text-muted">(Max 25 Q per category)</small></th>
+                                        <th>Level</th>
+                                        <th>Generate with AI<br><small class="text-muted">(Check to use AI)</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set categories = [
+                                        ('Mathematics', 'math'),
+                                        ('Physics', 'physics'),
+                                        ('Chemistry', 'chemistry'),
+                                        ('Biology', 'biology'),
+                                        ('Computer Science', 'cs')
+                                    ] %}
+                                    {% for label, name in categories %}
+                                    <tr>
+                                        <td>{{ label }}</td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm" name="num_questions_{{ name }}" min="0" max="25" value="0" required>
+                                        </td>
+                                        <td>
+                                            <select class="form-control form-control-sm" name="level_{{ name }}" required>
+                                                <option value="Elementary">Elementary</option>
+                                                <option value="Middle School">Middle School</option>
+                                                <option value="High School">High School</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <div class="form-check d-inline-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input" name="use_ai_{{ name }}" id="use_ai_{{ name }}" style="transform: scale(1.2); margin-top:0;">
+                                                <label class="form-check-label ml-2" for="use_ai_{{ name }}" style="font-size: 12px; color: #666; white-space: nowrap;">
+                                                    <span class="ai-status-{{ name }}"></span>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="quizMessage" class="mt-3 text-center"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" id="createQuizBtn" class="btn btn-success mx-2">Create Quiz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Popper.js v1.x (compatible con Bootstrap 4.5.2) -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -2,73 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added for responsiveness -->
     <title>Quiz - AI QuizLab 🤖</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="teacher-container">
-        <h2>Quiz for {{ student_name }} (Teacher: {{ teacher_name }}) 🚀</h2>
-        {% if already_done %}
-            <p style="text-align:center; color:red; font-weight:bold;">
-                You have already completed this quiz. You cannot take it again.
-            </p>
-            {% if student_result %}
-                <div style="margin: 24px auto; text-align:center; color:green; font-weight:bold;">
-                    <b>Your Results:</b><br>
-                    Mathematics: {{ student_result.mathematics }}<br>
-                    Physics: {{ student_result.physics }}<br>
-                    Chemistry: {{ student_result.chemistry }}<br>
-                    Biology: {{ student_result.biology }}<br>
-                    Computer Science: {{ student_result.computer_science }}<br>
-                    <b>Total: {{ student_result.total }}</b>
-                </div>
-            {% endif %}
-            <div id="logoutAfterQuiz" style="margin-top:24px; text-align:center;">
-                <form action="/logout" method="post" style="display:inline-block;">
-                    <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
-                </form>
-            </div>
-        {% elif quiz_questions %}
-            <form id="studentQuizForm">
-                <ol>
-                {% for q in quiz_questions %}
-                    {% set idx = loop.index0 %}
-                    <li style="margin-bottom: 24px;">
-                        <div>
-                            <strong>Question:</strong> {{ q.get('question', 'No question text') }}<br>
-                            <strong>Category:</strong> {{ q.get('category', 'N/A') }} | <strong>Level:</strong> {{ q.get('level', 'N/A') }}
-                        </div>
-                        {% if q.get('options') %}
-                            <ul style="list-style-type: lower-alpha;">
-                                {% for opt in q.options %}
-                                    <li>
-                                        <label>
-                                            <input type="radio" name="q{{ idx }}" value="{{ opt }}">
-                                            {{ opt }}
-                                        </label>
-                                    </li>
-                                {% endfor %}
+    <div class="container mt-5"> <!-- Main Bootstrap container -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Quiz for {{ student_name }} <small class="text-muted">(Teacher: {{ teacher_name }})</small> 🚀</h2>
+
+                {% if already_done %}
+                    <div class="alert alert-warning text-center" role="alert">
+                        You have already completed this quiz. You cannot take it again.
+                    </div>
+                    {% if student_result %}
+                        <div class="card my-4">
+                            <div class="card-header bg-success text-white text-center">
+                                <strong>Your Results</strong>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Mathematics:
+                                    <span class="badge badge-primary badge-pill">{{ student_result.mathematics }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Physics:
+                                    <span class="badge badge-secondary badge-pill">{{ student_result.physics }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Chemistry:
+                                    <span class="badge badge-success badge-pill">{{ student_result.chemistry }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Biology:
+                                    <span class="badge badge-danger badge-pill">{{ student_result.biology }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Computer Science:
+                                    <span class="badge badge-warning badge-pill">{{ student_result.computer_science }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center font-weight-bold">
+                                    Total:
+                                    <span class="badge badge-info badge-pill h5">{{ student_result.total }}</span>
+                                </li>
                             </ul>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-                </ol>
-                <div style="text-align:center;">
-                    <button type="submit" style="width:auto; display:inline-block;">Submit Quiz</button>
+                        </div>
+                    {% endif %}
+                    <div id="logoutAfterQuiz" class="text-center mt-4">
+                        <form action="/logout" method="post" class="d-inline-block">
+                            <button type="submit" class="btn btn-danger btn-lg">Logout</button>
+                        </form>
+                    </div>
+
+                {% elif quiz_questions %}
+                    <form id="studentQuizForm">
+                        <ol class="list-group">
+                        {% for q in quiz_questions %}
+                            {% set idx = loop.index0 %}
+                            <li class="list-group-item mb-4 p-3 border rounded shadow-sm">
+                                <div class="mb-2">
+                                    <p class="font-weight-bold h5">{{ loop.index }}. {{ q.get('question', 'No question text') }}</p>
+                                    <small class="text-muted">Category: {{ q.get('category', 'N/A') }} | Level: {{ q.get('level', 'N/A') }}</small>
+                                </div>
+                                {% if q.get('options') %}
+                                    <ul class="list-unstyled"> <!-- list-unstyled para quitar bullets por defecto -->
+                                        {% for option_value in q.options %}
+                                            {% set opt_idx = loop.index0 %} {# Usar loop.index0 para el índice de la opción #}
+                                            <li class="form-check my-2">
+                                                <input class="form-check-input" type="radio" name="q{{ idx }}" id="q{{idx}}opt{{opt_idx}}" value="{{ option_value }}">
+                                                <label class="form-check-label" for="q{{idx}}opt{{opt_idx}}">
+                                                    {{ option_value }}
+                                                </label>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ol>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-danger text-center" role="alert">
+                        No quiz available for your group. Please contact your teacher.
+                    </div>
+                    <div class="text-center mt-4">
+                        <form action="/logout" method="post" class="d-inline-block">
+                            <button type="submit" class="btn btn-secondary">Back to Dashboard / Logout</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <div id="quizResult" class="mt-4 text-center"></div>
+                <div id="logoutAfterQuiz" style="display:none;" class="text-center mt-4">
+                    <form action="/logout" method="post" class="d-inline-block">
+                        <button type="submit" class="btn btn-danger btn-lg">Logout</button>
+                    </form>
                 </div>
-            </form>
-        {% else %}
-            <p style="text-align:center; color:red;">
-                No quiz available for your group. Please contact your teacher.
-            </p>
-        {% endif %}
-        <div id="quizResult" style="margin-top:24px; text-align:center;"></div>
-        <div id="logoutAfterQuiz" style="display:none; margin-top:24px; text-align:center;">
-            <form action="/logout" method="post" style="display:inline-block;">
-                <button type="submit" style="background:#e53935; width:auto; display:inline-block;">Logout</button>
-            </form>
+            </div>
         </div>
     </div>
+
+    <!-- Bootstrap JS and dependencies (jQuery, Popper.js) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

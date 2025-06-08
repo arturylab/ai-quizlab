@@ -2,35 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AI QuizLab 🤖</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login as Student 🎓 or Teacher 👩‍🏫</h2>
-        <form action="/login" method="post">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <button type="submit">Login</button>
-            <p style="text-align: center;">
-                Are you a new teacher? 
-                <a href="{{ url_for('register') }}" style="color: inherit; text-decoration: underline;">Register here</a>
-            </p>
-        </form>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="my-4 p-3 border rounded shadow-sm">
+                    <h3 class="text-center mb-3">AI QuizLab 🤖</h3>
+                    <h4 class="text-center mb-4">Login as Teacher or Student</h4>
+                    <form action="/login" method="post">
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <p class="text-center mt-3">
+                            Are you a new teacher? 
+                            <a href="{{ url_for('register') }}">Register here</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} {% if category == 'danger' %}alert-danger{% else %}alert-success{% endif %}" 
-                     style="text-align:center; margin-top:15px;">
-                    {{ message }}
+            <div class="container mt-3">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
-            {% endfor %}
+            </div>
         {% endif %}
     {% endwith %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

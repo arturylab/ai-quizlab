@@ -4,7 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    
     // ============================================================================
     // STUDENT UPLOAD FUNCTIONALITY (Section 1 in teacher.html)
     // ============================================================================
@@ -233,11 +232,9 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function updateAiStatus(checkbox, statusSpan) {
         if (checkbox.checked) {
-            statusSpan.textContent = '🤖 AI';
             statusSpan.style.color = '#ff6b35';
             statusSpan.style.fontWeight = 'bold';
         } else {
-            statusSpan.textContent = '📚 Bank';
             statusSpan.style.color = '#1976d2';
             statusSpan.style.fontWeight = 'normal';
         }
@@ -382,88 +379,106 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================================================
     // TEACHER PROFILE EDITING (Section 5 - Menu/Profile in teacher.html)
     // ============================================================================
+    const profileForm = document.getElementById('profileForm'); // Asumiendo que el form tiene este ID
     
-    /**
-     * Handle profile field editing functionality
-     */
     const editNameBtn = document.getElementById('editNameBtn');
+    const nameCell = document.getElementById('nameCell');
+    const nameInput = document.getElementById('nameInput');
+
     const editSchoolBtn = document.getElementById('editSchoolBtn');
+    const schoolCell = document.getElementById('schoolCell');
+    const schoolInput = document.getElementById('schoolInput');
+
     const editPasswordBtn = document.getElementById('editPasswordBtn');
+    const passwordDisplayRow = document.getElementById('passwordDisplayRow'); // ID CORREGIDO
+    const passwordEditRow = document.getElementById('passwordEditRow');
+    const passwordInputField = document.getElementById('passwordInput'); // Renombrado para evitar conflicto
+    const confirmPasswordInputField = document.getElementById('confirmPasswordInput'); // Renombrado
+
+    const updateProfileBtn = document.getElementById('updateProfileBtn');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    function setEditingState(isEditing) {
+        if (cancelEditBtn) {
+            cancelEditBtn.style.display = isEditing ? 'inline-block' : 'none';
+        }
+        // El botón UpdateProfile generalmente permanece visible.
+        // Si se quisiera ocultar/mostrar, se haría aquí.
+    }
+
+    function enterFieldEditMode(pElement, inputElement) {
+        if (pElement && inputElement) {
+            pElement.style.display = 'none';
+            inputElement.style.display = 'block';
+            // inputElement.value = pElement.getAttribute('data-original'); // Asegura que el input tenga el valor actual del <p>
+            inputElement.focus();
+        }
+        setEditingState(true);
+    }
+
+    function exitAllEditModes() {
+        // Reset Name field
+        if (nameCell && nameInput) {
+            nameCell.style.display = 'block'; // O el display original del <p>
+            nameInput.style.display = 'none';
+            nameInput.value = nameCell.getAttribute('data-original'); // Restaura valor del input
+            nameCell.textContent = nameCell.getAttribute('data-original'); // Restaura texto del <p>
+        }
+        // Reset School field
+        if (schoolCell && schoolInput) {
+            schoolCell.style.display = 'block'; // O el display original del <p>
+            schoolInput.style.display = 'none';
+            schoolInput.value = schoolCell.getAttribute('data-original'); // Restaura valor del input
+            schoolCell.textContent = schoolCell.getAttribute('data-original'); // Restaura texto del <p>
+        }
+        // Reset Password section
+        if (passwordDisplayRow && passwordEditRow) {
+            passwordDisplayRow.style.display = 'flex'; // .row en Bootstrap es flex
+            passwordEditRow.style.display = 'none';
+        }
+        if (passwordInputField) passwordInputField.value = '';
+        if (confirmPasswordInputField) confirmPasswordInputField.value = '';
+
+        setEditingState(false);
+    }
 
     if (editNameBtn) {
         editNameBtn.addEventListener('click', function() {
-            toggleFieldEdit('nameCell', 'name', 'Name');
+            enterFieldEditMode(nameCell, nameInput);
         });
     }
 
     if (editSchoolBtn) {
         editSchoolBtn.addEventListener('click', function() {
-            toggleFieldEdit('schoolCell', 'school', 'School');
+            enterFieldEditMode(schoolCell, schoolInput);
         });
     }
 
     if (editPasswordBtn) {
         editPasswordBtn.addEventListener('click', function() {
-            const passwordRow = document.getElementById('passwordRow');
-            const passwordEditRow = document.getElementById('passwordEditRow');
-            
-            if (passwordRow && passwordEditRow) {
-                passwordRow.style.display = 'none';
-                passwordEditRow.style.display = 'table-row';
+            if (passwordDisplayRow && passwordEditRow) {
+                passwordDisplayRow.style.display = 'none';
+                passwordEditRow.style.display = 'block';
+                if(passwordInputField) passwordInputField.focus();
             }
+            setEditingState(true);
         });
     }
 
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', function() {
-            // Reset all editing states
-            resetFieldEdit('nameCell');
-            resetFieldEdit('schoolCell');
-            
-            // Hide password edit interface
-            const passwordRow = document.getElementById('passwordRow');
-            const passwordEditRow = document.getElementById('passwordEditRow');
-            const passwordInput = document.getElementById('passwordInput');
-            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-            
-            if (passwordRow && passwordEditRow) {
-                passwordRow.style.display = 'table-row';
-                passwordEditRow.style.display = 'none';
-            }
-            
-            if (passwordInput) passwordInput.value = '';
-            if (confirmPasswordInput) confirmPasswordInput.value = '';
+            exitAllEditModes();
         });
     }
 
-    /**
-     * Toggle a field between display and edit mode
-     */
-    function toggleFieldEdit(cellId, fieldName, placeholder) {
-        const cell = document.getElementById(cellId);
-        if (!cell || cell.querySelector('input')) return;
+    // Si el formulario se envía (y no es AJAX), la página se recargará,
+    // restableciendo el estado visual. Si fuera AJAX, llamarías a exitAllEditModes()
+    // en la respuesta exitosa del fetch.
 
-        const currentValue = cell.textContent;
-        cell.innerHTML = `<input type="text" name="${fieldName}" value="${currentValue}" placeholder="${placeholder}" style="width:100%; padding:4px;">`;
-        
-        const input = cell.querySelector('input');
-        if (input) {
-            input.focus();
-            input.select();
-        }
-    }
-
-    /**
-     * Reset a field from edit mode to display mode
-     */
-    function resetFieldEdit(cellId) {
-        const cell = document.getElementById(cellId);
-        if (!cell) return;
-
-        const originalValue = cell.getAttribute('data-original');
-        cell.textContent = originalValue;
-    }
+    // Eliminar las funciones toggleFieldEdit y resetFieldEdit anteriores si ya no se usan
+    // o adaptarlas a la nueva lógica si es necesario.
+    // La lógica anterior de toggleFieldEdit y resetFieldEdit ha sido integrada/reemplazada
+    // por enterFieldEditMode y exitAllEditModes para una gestión más centralizada.
 
     // ============================================================================
     // QUIZ DELETION FUNCTIONALITY (Used in exam_teacher.html)
@@ -543,5 +558,336 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+    }
+    
+    const logoutButton = document.getElementById('logout'); // Asegúrate que el ID coincida con tu HTML
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(event) {
+            event.preventDefault(); // Previene la acción por defecto del enlace (navegar a #)
+            const logoutForm = document.getElementById('logoutForm');
+            if (logoutForm) {
+                logoutForm.submit(); // Envía el formulario oculto
+            } else {
+                console.error('Logout form not found!');
+            }
+        });
+    }
+
+    // ============================================================================
+    // TOGGLE UPLOAD SECTION FUNCTIONALITY
+    // ============================================================================
+    const toggleUploadBtn = document.getElementById('toggleUploadSectionBtn');
+    const uploadSectionContainer = document.getElementById('uploadSectionContainer');
+
+    if (toggleUploadBtn && uploadSectionContainer) {
+        toggleUploadBtn.addEventListener('click', function() {
+            if (uploadSectionContainer.style.display === 'none') {
+                uploadSectionContainer.style.display = 'block';
+                this.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+                    </svg>
+                    Hide Uploader`;
+            } else {
+                uploadSectionContainer.style.display = 'none';
+                this.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    Add Student List`;
+            }
+        });
+    }
+
+    // Script para actualizar el label del custom file input con el nombre del archivo
+    const studentCsvFileInput = document.getElementById('studentCsvFile');
+    if (studentCsvFileInput) {
+        studentCsvFileInput.addEventListener('change', function(e) {
+            let fileName = "";
+            if (this.files && this.files.length > 0) {
+                fileName = this.files[0].name;
+            }
+            const nextSibling = this.nextElementSibling; // el label
+            if (nextSibling) {
+                nextSibling.innerText = fileName || "Choose CSV file...";
+            }
+        });
+    }
+
+    // ============================================================================
+    // GENERIC TABLE SORTING FUNCTIONALITY
+    // ============================================================================
+    
+    // Store sort state for each table separately
+    const sortStates = {};
+
+    function initializeTableSorting(tableId, columnMappings, defaultSortColumn = null) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        sortStates[tableId] = {
+            currentSortColumn: defaultSortColumn,
+            currentSortDirection: 'asc'
+        };
+
+        const headers = table.querySelectorAll('.sortable-header');
+        headers.forEach(header => {
+            header.addEventListener('click', function() {
+                const column = this.dataset.column;
+                const type = this.dataset.type;
+                const currentTableState = sortStates[tableId];
+
+                if (currentTableState.currentSortColumn === column) {
+                    currentTableState.currentSortDirection = currentTableState.currentSortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentTableState.currentSortColumn = column;
+                    currentTableState.currentSortDirection = 'asc';
+                }
+
+                updateSortIcons(headers, this, currentTableState.currentSortDirection);
+                sortTable(table, column, type, currentTableState.currentSortDirection, columnMappings);
+            });
+        });
+
+        // Initialize sort icons on page load for this table
+        if (headers.length > 0) {
+            updateSortIcons(headers, defaultSortColumn ? table.querySelector(`.sortable-header[data-column="${defaultSortColumn}"]`) : null, sortStates[tableId].currentSortDirection);
+        }
+    }
+
+    // updateSortIcons function remains the same as you provided
+    function updateSortIcons(headers, activeHeader, direction) {
+        headers.forEach(header => {
+            const icon = header.querySelector('.sort-icon');
+            if (icon) {
+                if (header === activeHeader) {
+                    icon.textContent = direction === 'asc' ? ' ▲' : ' ▼';
+                } else {
+                    icon.textContent = ' ▲'; // Default icon for non-active sortable columns
+                }
+            }
+        });
+    }
+
+    function sortTable(table, column, type, direction, columnMappings) {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        const colSpanForEmpty = table.id === 'studentsTable' ? 6 : 10; // Adjust based on table
+        if (rows.length === 1 && rows[0].querySelectorAll('td').length === 1 && rows[0].querySelector('td').colSpan === colSpanForEmpty) {
+            return; 
+        }
+
+        const dataRows = rows.map(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = { originalRow: row };
+            for (const key in columnMappings) {
+                const cellIndex = columnMappings[key];
+                rowData[key] = cells[cellIndex] ? cells[cellIndex].textContent.trim() : '';
+            }
+            return rowData;
+        });
+
+        dataRows.sort((a, b) => {
+            let valA = a[column];
+            let valB = b[column];
+
+            if (type === 'number') {
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
+            } else if (type === 'string') {
+                valA = (valA || "").toLowerCase();
+                valB = (valB || "").toLowerCase();
+            }
+
+            if (valA < valB) {
+                return direction === 'asc' ? -1 : 1;
+            }
+            if (valA > valB) {
+                return direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+        tbody.innerHTML = '';
+        dataRows.forEach(dataRow => {
+            tbody.appendChild(dataRow.originalRow);
+        });
+        
+        // Re-attach specific event listeners if necessary (e.g., for studentsTable)
+        if (table.id === 'studentsTable') {
+            attachStudentEventListeners(); 
+        } else if (table.id === 'statisticsTable') {
+            attachStatisticsEventListeners(); // You'll need to create this if retry buttons need re-attaching
+        }
+    }
+
+    // ============================================================================
+    // INITIALIZE SORTING FOR SPECIFIC TABLES
+    // ============================================================================
+    
+    // For Students Table
+    const studentColumnMappings = {
+        id: 0,
+        name: 1,
+        group: 2,
+        username: 3
+        // Add other columns if they become sortable
+    };
+    initializeTableSorting('studentsTable', studentColumnMappings, 'id'); // Default sort by ID
+
+    // For Statistics Table
+    const statisticsColumnMappings = {
+        id: 0,       // Corresponds to student_id
+        name: 1,
+        group: 2,
+        // mathematics: 3, // Not sortable by default in this request
+        // physics: 4,
+        // chemistry: 5,
+        // biology: 6,
+        // computer_science: 7,
+        total: 8    // Corresponds to total score
+    };
+    initializeTableSorting('statisticsTable', statisticsColumnMappings, 'id'); // Default sort by ID
+
+    // ============================================================================
+    // EVENT LISTENERS FOR STATISTICS TABLE (Example, if needed)
+    // ============================================================================
+    function attachStatisticsEventListeners() {
+        document.querySelectorAll('#statisticsTable .retry-quiz').forEach(function(btn) {
+            // Check if listener already attached to prevent duplicates if not careful with re-attaching
+            if (btn.dataset.listenerAttached === 'true') return;
+
+            btn.onclick = function() {
+                const studentId = this.dataset.studentId; // Using data-attribute
+                const row = this.closest('tr');
+                
+                if (confirm(`Are you sure you want to allow student ID ${studentId} to retake the quiz? This will delete their previous results.`)) {
+                    fetch('/reset_student_result', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ id: studentId })
+                    }).then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            row.remove(); // Or update UI as needed
+                            // Potentially refresh or re-fetch statistics data
+                        } else {
+                            alert(data.message || 'Error resetting result');
+                        }
+                    });
+                }
+            };
+            btn.dataset.listenerAttached = 'true'; // Mark as attached
+        });
+    }
+    // Initial call for statistics table event listeners
+    attachStatisticsEventListeners();
+
+
+    // ============================================================================
+    // STUDENT TABLE SORTING FUNCTIONALITY
+    // ============================================================================
+    let currentSortColumn = null;
+    let currentSortDirection = 'asc'; // 'asc' or 'desc'
+
+    const studentsTable = document.getElementById('studentsTable');
+    if (studentsTable) {
+        const headers = studentsTable.querySelectorAll('.sortable-header');
+        headers.forEach(header => {
+            header.addEventListener('click', function() {
+                const column = this.dataset.column;
+                const type = this.dataset.type;
+
+                if (currentSortColumn === column) {
+                    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortColumn = column;
+                    currentSortDirection = 'asc';
+                }
+
+                updateSortIcons(headers, this, currentSortDirection);
+                sortTable(studentsTable, column, type, currentSortDirection);
+            });
+        });
+
+        // Initialize sort icons on page load
+        const initialHeaders = studentsTable.querySelectorAll('.sortable-header');
+        if (initialHeaders.length > 0) {
+            // Set a default active column for initial icon display or show all as default
+            // For simplicity, we'll make all non-active initially show ' ▲'
+            updateSortIcons(initialHeaders, null, 'asc'); 
+        }
+    }
+
+    function updateSortIcons(headers, activeHeader, direction) {
+        headers.forEach(header => {
+            const icon = header.querySelector('.sort-icon');
+            if (icon) {
+                if (header === activeHeader) {
+                    icon.textContent = direction === 'asc' ? ' ▲' : ' ▼';
+                } else {
+                    icon.textContent = ' ▲'; // Default icon for non-active sortable columns
+                }
+            }
+        });
+    }
+
+    function sortTable(table, column, type, direction) {
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return; // Ensure tbody exists
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Handle case where there's only a "No students yet." row
+        if (rows.length === 1 && rows[0].querySelectorAll('td').length === 1 && rows[0].querySelector('td').colSpan === 6) {
+            return; // Do not sort if only the "No students" message is present
+        }
+
+
+        // Extraer datos de las filas para ordenar
+        const dataRows = rows.map(row => {
+            const cells = row.querySelectorAll('td');
+            // Ensure cells exist for the required columns before accessing textContent
+            return {
+                id: cells[0] ? cells[0].textContent.trim() : '',
+                name: cells[1] ? cells[1].textContent.trim() : '',
+                group: cells[2] ? cells[2].textContent.trim() : '',
+                username: cells[3] ? cells[3].textContent.trim() : '',
+                originalRow: row // Guardar la fila original para reconstruirla
+            };
+        });
+
+        dataRows.sort((a, b) => {
+            let valA = a[column];
+            let valB = b[column];
+
+            if (type === 'number') {
+                valA = parseFloat(valA) || 0; // Fallback to 0 if parsing fails
+                valB = parseFloat(valB) || 0;
+            } else if (type === 'string') {
+                valA = (valA || "").toLowerCase(); // Fallback to empty string if undefined
+                valB = (valB || "").toLowerCase();
+            }
+
+            if (valA < valB) {
+                return direction === 'asc' ? -1 : 1;
+            }
+            if (valA > valB) {
+                return direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+        // Limpiar tbody y re-añadir filas ordenadas
+        tbody.innerHTML = '';
+        dataRows.forEach(dataRow => {
+            tbody.appendChild(dataRow.originalRow);
+        });
+        
+        // Re-attach event listeners for edit/delete/reset as rows are re-ordered
+        attachStudentEventListeners(); 
     }
 });
