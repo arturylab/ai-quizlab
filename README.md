@@ -28,7 +28,7 @@ AI QuizLab is an educational web application that combines pre-built question ba
 - 🐍 **Backend:** Python 3.8+ with Flask
 - 🗄️ **Database:** PostgreSQL with SQLAlchemy ORM
 - 🤖 **AI:** Ollama for question generation
-- 🖥️ **Frontend:** HTML5, CSS3, JavaScript
+- 🖥️ **Frontend:** HTML5, CSS3, JavaScript, Bootstrap 5
 - 📦 **Package Management:** pip and requirements.txt
 
 ---
