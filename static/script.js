@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================================================
     // TEACHER PROFILE EDITING (Section 5 - Menu/Profile in teacher.html)
     // ============================================================================
-    const profileForm = document.getElementById('profileForm'); // Asumiendo que el form tiene este ID
+    const profileForm = document.getElementById('profileForm'); // Assuming the form has this ID
     
     const editNameBtn = document.getElementById('editNameBtn');
     const nameCell = document.getElementById('nameCell');
@@ -390,10 +390,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const schoolInput = document.getElementById('schoolInput');
 
     const editPasswordBtn = document.getElementById('editPasswordBtn');
-    const passwordDisplayRow = document.getElementById('passwordDisplayRow'); // ID CORREGIDO
+    const passwordDisplayRow = document.getElementById('passwordDisplayRow'); // CORRECTED ID
     const passwordEditRow = document.getElementById('passwordEditRow');
-    const passwordInputField = document.getElementById('passwordInput'); // Renombrado para evitar conflicto
-    const confirmPasswordInputField = document.getElementById('confirmPasswordInput'); // Renombrado
+    const passwordInputField = document.getElementById('passwordInput'); // Renamed to avoid conflict
+    const confirmPasswordInputField = document.getElementById('confirmPasswordInput'); // Renamed
 
     const updateProfileBtn = document.getElementById('updateProfileBtn');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
@@ -402,15 +402,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cancelEditBtn) {
             cancelEditBtn.style.display = isEditing ? 'inline-block' : 'none';
         }
-        // El botón UpdateProfile generalmente permanece visible.
-        // Si se quisiera ocultar/mostrar, se haría aquí.
+        // The UpdateProfile button generally remains visible.
+        // If you wanted to hide/show it, you would do it here.
     }
 
     function enterFieldEditMode(pElement, inputElement) {
         if (pElement && inputElement) {
             pElement.style.display = 'none';
             inputElement.style.display = 'block';
-            // inputElement.value = pElement.getAttribute('data-original'); // Asegura que el input tenga el valor actual del <p>
+            // inputElement.value = pElement.getAttribute('data-original'); // Ensures the input has the current value from <p>
             inputElement.focus();
         }
         setEditingState(true);
@@ -419,21 +419,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function exitAllEditModes() {
         // Reset Name field
         if (nameCell && nameInput) {
-            nameCell.style.display = 'block'; // O el display original del <p>
+            nameCell.style.display = 'block'; // Or the original display of <p>
             nameInput.style.display = 'none';
-            nameInput.value = nameCell.getAttribute('data-original'); // Restaura valor del input
-            nameCell.textContent = nameCell.getAttribute('data-original'); // Restaura texto del <p>
+            nameInput.value = nameCell.getAttribute('data-original'); // Restore input value
+            nameCell.textContent = nameCell.getAttribute('data-original'); // Restore <p> text
         }
         // Reset School field
         if (schoolCell && schoolInput) {
-            schoolCell.style.display = 'block'; // O el display original del <p>
+            schoolCell.style.display = 'block'; // Or the original display of <p>
             schoolInput.style.display = 'none';
-            schoolInput.value = schoolCell.getAttribute('data-original'); // Restaura valor del input
-            schoolCell.textContent = schoolCell.getAttribute('data-original'); // Restaura texto del <p>
+            schoolInput.value = schoolCell.getAttribute('data-original'); // Restore input value
+            schoolCell.textContent = schoolCell.getAttribute('data-original'); // Restore <p> text
         }
         // Reset Password section
         if (passwordDisplayRow && passwordEditRow) {
-            passwordDisplayRow.style.display = 'flex'; // .row en Bootstrap es flex
+            passwordDisplayRow.style.display = 'flex'; // .row in Bootstrap is flex
             passwordEditRow.style.display = 'none';
         }
         if (passwordInputField) passwordInputField.value = '';
@@ -471,14 +471,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Si el formulario se envía (y no es AJAX), la página se recargará,
-    // restableciendo el estado visual. Si fuera AJAX, llamarías a exitAllEditModes()
-    // en la respuesta exitosa del fetch.
+    // If the form is submitted (and not AJAX), the page will reload,
+    // resetting the visual state. If it were AJAX, you would call exitAllEditModes()
+    // in the successful response of the fetch.
 
-    // Eliminar las funciones toggleFieldEdit y resetFieldEdit anteriores si ya no se usan
-    // o adaptarlas a la nueva lógica si es necesario.
-    // La lógica anterior de toggleFieldEdit y resetFieldEdit ha sido integrada/reemplazada
-    // por enterFieldEditMode y exitAllEditModes para una gestión más centralizada.
+    // Remove the previous toggleFieldEdit and resetFieldEdit functions if they are no longer used
+    // or adapt them to the new logic if necessary.
+    // The previous logic of toggleFieldEdit and resetFieldEdit has been integrated/replaced
+    // by enterFieldEditMode and exitAllEditModes for more centralized management.
 
     // ============================================================================
     // QUIZ DELETION FUNCTIONALITY (Used in exam_teacher.html)
@@ -560,13 +560,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    const logoutButton = document.getElementById('logout'); // Asegúrate que el ID coincida con tu HTML
+    const logoutButton = document.getElementById('logout'); // Make sure the ID matches your HTML
     if (logoutButton) {
         logoutButton.addEventListener('click', function(event) {
-            event.preventDefault(); // Previene la acción por defecto del enlace (navegar a #)
+            event.preventDefault(); // Prevents the default action of the link (navigate to #)
             const logoutForm = document.getElementById('logoutForm');
             if (logoutForm) {
-                logoutForm.submit(); // Envía el formulario oculto
+                logoutForm.submit(); // Submit the hidden form
             } else {
                 console.error('Logout form not found!');
             }
@@ -601,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Script para actualizar el label del custom file input con el nombre del archivo
+    // Script to update the custom file input label with the file name
     const studentCsvFileInput = document.getElementById('studentCsvFile');
     if (studentCsvFileInput) {
         studentCsvFileInput.addEventListener('change', function(e) {
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.files && this.files.length > 0) {
                 fileName = this.files[0].name;
             }
-            const nextSibling = this.nextElementSibling; // el label
+            const nextSibling = this.nextElementSibling; // the label
             if (nextSibling) {
                 nextSibling.innerText = fileName || "Choose CSV file...";
             }
@@ -846,8 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return; // Do not sort if only the "No students" message is present
         }
 
-
-        // Extraer datos de las filas para ordenar
+        // Extract data from rows for sorting
         const dataRows = rows.map(row => {
             const cells = row.querySelectorAll('td');
             // Ensure cells exist for the required columns before accessing textContent
@@ -856,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: cells[1] ? cells[1].textContent.trim() : '',
                 group: cells[2] ? cells[2].textContent.trim() : '',
                 username: cells[3] ? cells[3].textContent.trim() : '',
-                originalRow: row // Guardar la fila original para reconstruirla
+                originalRow: row // Store the original row to reconstruct it
             };
         });
 
@@ -881,7 +880,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return 0;
         });
 
-        // Limpiar tbody y re-añadir filas ordenadas
+        // Clear tbody and re-add sorted rows
         tbody.innerHTML = '';
         dataRows.forEach(dataRow => {
             tbody.appendChild(dataRow.originalRow);
