@@ -53,34 +53,27 @@ class QuizGenerator:
             str: Formatted prompt to send to AI
         """
         template = f"""
-Generate exactly {num_questions} multiple choice questions about "{category}" appropriate for "{level}" level.
+    Generate exactly {num_questions} multiple choice questions about "{category}" appropriate for "{level}" level.
 
-Format each question EXACTLY like this example:
-Question: What is 2 + 2?
-A) 3
-B) 4
-C) 5
-D) 6
-Answer: B
+    Format each question EXACTLY like this example:
+    Question: [Insert your question here]
+    A) [First option]
+    B) [Second option]
+    C) [Third option]
+    D) [Fourth option]
+    Answer: [Correct letter A, B, C, or D]
 
-Question: What is 3 + 3?
-A) 5
-B) 6
-C) 7
-D) 8
-Answer: B
+    Rules:
+    - Generate exactly {num_questions} questions
+    - Each question must have exactly 4 options labeled A), B), C), D)
+    - Provide the correct answer as A, B, C, or D
+    - Questions should be appropriate for {level} level
+    - Focus only on {category} topics
+    - Use the exact format shown above
+    - Each question should be separated by a blank line
 
-Rules:
-- Generate exactly {num_questions} questions
-- Each question must have exactly 4 options labeled A), B), C), D)
-- Provide the correct answer as A, B, C, or D
-- Questions should be appropriate for {level} level
-- Focus only on {category} topics
-- Use the exact format shown above
-- Each question should be separated by a blank line
-
-Generate {num_questions} questions now:
-"""
+    Generate {num_questions} questions now:
+    """
         return template.strip()
 
     def call_api(self, prompt: str) -> str:
